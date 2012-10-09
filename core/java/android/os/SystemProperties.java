@@ -21,7 +21,6 @@ package android.os;
  * Gives access to the system properties store.  The system properties
  * store contains a list of string key-value pairs.
  *
- * {@hide}
  */
 public class SystemProperties
 {

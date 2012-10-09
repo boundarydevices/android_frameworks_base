@@ -20,7 +20,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.io.IOException;
 
 import android.util.Log;
@@ -30,6 +29,7 @@ import android.graphics.ImageFormat;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 
 /**
  * The Camera class is used to set image capture settings, start/stop preview,
@@ -911,7 +911,11 @@ public class Camera {
      * @see #getParameters()
      */
     public void setParameters(Parameters params) {
-        native_setParameters(params.flatten());
+        try {
+            native_setParameters(params.flatten());
+        } catch (RuntimeException ex) {
+            Log.e(TAG, "Failed to set all parameters");
+        }
     }
 
     /**
@@ -968,6 +972,44 @@ public class Camera {
     };
 
     /**
+     * Handles the Touch Co-ordinate.
+     * @hide
+     */
+    public class Coordinate {
+        /**
+         * Sets the x,y co-ordinates for a touch event
+         *
+         * @param x the x co-ordinate (pixels)
+         * @param y the y co-ordinate (pixels)
+         */
+        public Coordinate(int x, int y) {
+            xCoordinate = x;
+            yCoordinate = y;
+        }
+        /**
+         * Compares {@code obj} to this co-ordinate.
+         *
+         * @param obj the object to compare this co-ordinate with.
+         * @return {@code true} if the xCoordinate and yCoordinate of {@code obj} is the
+         *         same as those of this coordinate. {@code false} otherwise.
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Coordinate)) {
+                return false;
+            }
+            Coordinate c = (Coordinate) obj;
+            return xCoordinate == c.xCoordinate && yCoordinate == c.yCoordinate;
+        }
+
+        /** x co-ordinate for the touch event*/
+        public int xCoordinate;
+
+        /** y co-ordinate for the touch event */
+        public int yCoordinate;
+    };
+
+    /**
      * Camera service settings.
      *
      * <p>To make camera parameters take effect, applications have to call
@@ -990,6 +1032,9 @@ public class Camera {
         private static final String KEY_PREVIEW_FORMAT = "preview-format";
         private static final String KEY_PREVIEW_FRAME_RATE = "preview-frame-rate";
         private static final String KEY_PREVIEW_FPS_RANGE = "preview-fps-range";
+        private static final String KEY_PREVIEW_FRAME_RATE_MODE = "preview-frame-rate-mode";
+        private static final String KEY_PREVIEW_FRAME_RATE_AUTO_MODE = "frame-rate-auto";
+        private static final String KEY_PREVIEW_FRAME_RATE_FIXED_MODE = "frame-rate-fixed";
         private static final String KEY_PICTURE_SIZE = "picture-size";
         private static final String KEY_PICTURE_FORMAT = "picture-format";
         private static final String KEY_JPEG_THUMBNAIL_SIZE = "jpeg-thumbnail-size";
@@ -1005,10 +1050,15 @@ public class Camera {
         private static final String KEY_GPS_PROCESSING_METHOD = "gps-processing-method";
         private static final String KEY_WHITE_BALANCE = "whitebalance";
         private static final String KEY_EFFECT = "effect";
+        private static final String KEY_TOUCH_AF_AEC = "touch-af-aec";
+        private static final String KEY_TOUCH_INDEX_AEC = "touch-index-aec";
+        private static final String KEY_TOUCH_INDEX_AF = "touch-index-af";
         private static final String KEY_ANTIBANDING = "antibanding";
         private static final String KEY_SCENE_MODE = "scene-mode";
         private static final String KEY_FLASH_MODE = "flash-mode";
         private static final String KEY_FOCUS_MODE = "focus-mode";
+        private /*static final*/ String KEY_ISO_MODE = "iso";
+        private static final String KEY_LENSSHADE = "lensshade";
         private static final String KEY_FOCAL_LENGTH = "focal-length";
         private static final String KEY_HORIZONTAL_VIEW_ANGLE = "horizontal-view-angle";
         private static final String KEY_VERTICAL_VIEW_ANGLE = "vertical-view-angle";
@@ -1016,13 +1066,28 @@ public class Camera {
         private static final String KEY_MAX_EXPOSURE_COMPENSATION = "max-exposure-compensation";
         private static final String KEY_MIN_EXPOSURE_COMPENSATION = "min-exposure-compensation";
         private static final String KEY_EXPOSURE_COMPENSATION_STEP = "exposure-compensation-step";
+        private static final String KEY_AUTO_EXPOSURE = "meter-mode";
         private static final String KEY_ZOOM = "zoom";
         private static final String KEY_MAX_ZOOM = "max-zoom";
         private static final String KEY_ZOOM_RATIOS = "zoom-ratios";
         private static final String KEY_ZOOM_SUPPORTED = "zoom-supported";
         private static final String KEY_SMOOTH_ZOOM_SUPPORTED = "smooth-zoom-supported";
         private static final String KEY_FOCUS_DISTANCES = "focus-distances";
-
+        private static final String KEY_CAF = "continuous-af";
+        private static final String KEY_SHARPNESS = "sharpness";
+        private static final String KEY_MAX_SHARPNESS = "sharpness-max";
+        private static final String KEY_DEFAULT_SHARPNESS = "sharpness-def";
+        private static final String KEY_CONTRAST = "contrast";
+        private static final String KEY_MAX_CONTRAST = "contrast-max";
+        private static final String KEY_DEFAULT_CONTRAST = "contrast-def";
+        private static final String KEY_SATURATION = "saturation";
+        private static final String KEY_MAX_SATURATION = "saturation-max";
+        private static final String KEY_DEFAULT_SATURATION = "saturation-def";
+        private static final String KEY_BRIGHTNESS = "brightness";
+        private static final String KEY_MAX_BRIGHTNESS = "brightness-max";
+        private static final String KEY_DEFAULT_BRIGHTNESS = "brightness-def";
+        private static final String KEY_SMART_CONTRAST = "smart-contrast";
+        
         // Parameter key suffix for supported values.
         private static final String SUPPORTED_VALUES_SUFFIX = "-values";
 
@@ -1049,11 +1114,51 @@ public class Camera {
         public static final String EFFECT_BLACKBOARD = "blackboard";
         public static final String EFFECT_AQUA = "aqua";
 
+        // Values for touch af/aec settings.
+        /** @hide */
+        public static final String TOUCH_AF_AEC_OFF = "touch-off";
+        /** @hide */
+        public static final String TOUCH_AF_AEC_ON = "touch-on";
+
+        // Values for auto exposure settings.
+        /** @hide */
+        public static final String AUTO_EXPOSURE_FRAME_AVG = "meter-average";
+        /** @hide */
+        public static final String AUTO_EXPOSURE_CENTER_WEIGHTED = "meter-center";
+        /** @hide */
+        public static final String AUTO_EXPOSURE_SPOT_METERING = "meter-spot";
+
         // Values for antibanding settings.
         public static final String ANTIBANDING_AUTO = "auto";
         public static final String ANTIBANDING_50HZ = "50hz";
         public static final String ANTIBANDING_60HZ = "60hz";
         public static final String ANTIBANDING_OFF = "off";
+
+        //Values for ISO settings
+
+        /** @hide */
+        public static final String ISO_AUTO = "auto";
+        /** @hide */
+        public static final String ISO_HJR = "deblur";
+        /** @hide */
+        public static final String ISO_100 = "100";
+        /** @hide */
+        public static final String ISO_200 = "200";
+        /** @hide */
+        public static final String ISO_400 = "400";
+        /** @hide */
+        public static final String ISO_800 = "800";
+        /** @hide */
+        public static final String ISO_1250 = "1250";
+        
+        //Values for Lens Shading
+
+        /** @hide */
+        public static final String LENSSHADE_ENABLE = "enable";
+        /** @hide */
+        public static final String LENSSHADE_DISABLE= "disable";
+
+
 
         // Values for flash mode settings.
         /**
@@ -1254,10 +1359,17 @@ public class Camera {
         private static final String PIXEL_FORMAT_RGB565 = "rgb565";
         private static final String PIXEL_FORMAT_JPEG = "jpeg";
 
+        //Values for Continuous AF
+
+        /** @hide */
+        public static final String CAF_OFF = "caf-off";
+        /** @hide */
+        public static final String CAF_ON = "caf-on";
+
         private HashMap<String, String> mMap;
 
         private Parameters() {
-            mMap = new HashMap<String, String>();
+            mMap = new HashMap<String, String>(64);
         }
 
         /**
@@ -1281,7 +1393,7 @@ public class Camera {
          *         semi-colon delimited key-value pairs
          */
         public String flatten() {
-            StringBuilder flattened = new StringBuilder();
+            StringBuilder flattened = new StringBuilder(128);
             for (String k : mMap.keySet()) {
                 flattened.append(k);
                 flattened.append("=");
@@ -1304,9 +1416,9 @@ public class Camera {
         public void unflatten(String flattened) {
             mMap.clear();
 
-            StringTokenizer tokenizer = new StringTokenizer(flattened, ";");
-            while (tokenizer.hasMoreElements()) {
-                String kv = tokenizer.nextToken();
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(';');
+            splitter.setString(flattened);
+            for (String kv : splitter) {
                 int pos = kv.indexOf('=');
                 if (pos == -1) {
                     continue;
@@ -1367,7 +1479,8 @@ public class Camera {
          * @return the int value of the parameter
          */
         public int getInt(String key) {
-            return Integer.parseInt(mMap.get(key));
+            String value = mMap.get(key);
+            return value == null ? 0 : Integer.parseInt(value);
         }
 
         /**
@@ -1965,6 +2078,269 @@ public class Camera {
             return split(str);
         }
 
+        /**
+         * Gets the current Touch AF/AEC setting.
+         *
+         * @return one of TOUCH_AF_AEC_XXX string constant. null if Touch AF/AEC
+         *         setting is not supported.
+         *
+         * @hide
+         */
+        public String getTouchAfAec() {
+            return get(KEY_TOUCH_AF_AEC);
+        }
+
+        /**
+         * Sets the current TOUCH AF/AEC setting.
+         *
+         * @param value TOUCH_AF_AEC_XXX string constants.
+         *
+         * @hide
+         */
+        public void setTouchAfAec(String value) {
+            set(KEY_TOUCH_AF_AEC, value);
+        }
+
+       /**
+         * Gets the supported Touch AF/AEC setting.
+         *
+         * @return a List of TOUCH_AF_AEC_XXX string constants. null if TOUCH AF/AEC
+         *         setting is not supported.
+         *
+         * @hide
+         */
+        public List<String> getSupportedTouchAfAec() {
+            String str = get(KEY_TOUCH_AF_AEC + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+        /**
+         * Sets the touch co-ordinate for Touch AEC.
+         *
+         * @param x  the x co-ordinate of the touch event
+         * @param y the y co-ordinate of the touch event
+         *
+         * @hide
+         */
+        public void setTouchIndexAec(int x, int y) {
+            String v = Integer.toString(x) + "x" + Integer.toString(y);
+            set(KEY_TOUCH_INDEX_AEC, v);
+        }
+
+        /**
+         * Returns the touch co-ordinates of the touch event.
+         *
+         * @return a Index object with the x and y co-ordinated
+         *          for the touch event
+         *
+         * @hide
+         */
+        public Coordinate getTouchIndexAec() {
+            String pair = get(KEY_TOUCH_INDEX_AEC);
+            return strToCoordinate(pair);
+        }
+
+        /**
+         * Sets the touch co-ordinate for Touch AF.
+         *
+         * @param x  the x co-ordinate of the touch event
+         * @param y the y co-ordinate of the touch event
+         *
+         * @hide
+         */
+        public void setTouchIndexAf(int x, int y) {
+            String v = Integer.toString(x) + "x" + Integer.toString(y);
+            set(KEY_TOUCH_INDEX_AF, v);
+        }
+
+        /**
+         * Returns the touch co-ordinates of the touch event.
+         *
+         * @return a Index object with the x and y co-ordinated
+         *          for the touch event
+         *
+         * @hide
+         */
+        public Coordinate getTouchIndexAf() {
+            String pair = get(KEY_TOUCH_INDEX_AF);
+            return strToCoordinate(pair);
+        }
+
+        /**
+         * Get Sharpness level
+         *
+         * @return sharpness level
+         * @hide
+         */
+        public int getSharpness(){
+            return getInt(KEY_SHARPNESS, 0);
+        }
+
+        /**
+         * Set Sharpness Level
+         *
+         * @param sharpness level
+         * @hide
+         */
+        public void setSharpness(int sharpness){
+            if((sharpness < 0) || (sharpness > getMaxSharpness()) )
+                throw new IllegalArgumentException(
+                        "Invalid Sharpness " + sharpness);
+
+            set(KEY_SHARPNESS, String.valueOf(sharpness));
+        }
+
+        /**
+         * Get Max Sharpness Level
+         *
+         * @return max sharpness level
+         * @hide
+         */
+        public int getMaxSharpness(){
+            return getInt(KEY_MAX_SHARPNESS, 0);
+        }
+
+        /**
+         * Get default sharpness level
+         * 
+         * @return default sharpness level
+         * @hide
+         */
+        public int getDefaultSharpness() {
+            return getInt(KEY_DEFAULT_SHARPNESS, 0);
+        }
+
+        /**
+         * Get Contrast level
+         *
+         * @return contrast level
+         * @hide
+         */
+        public int getContrast(){
+            return getInt(KEY_CONTRAST, 0);
+        }
+
+        /**
+         * Set Contrast Level
+         *
+         * @param contrast level
+         * @hide
+         */
+        public void setContrast(int contrast){
+            if((contrast < 0 ) || (contrast > getMaxContrast()))
+                throw new IllegalArgumentException(
+                        "Invalid Contrast " + contrast);
+
+            set(KEY_CONTRAST, String.valueOf(contrast));
+        }
+
+        /**
+         * Get Max Contrast Level
+         *
+         * @return max contrast level
+         * @hide
+         */
+        public int getMaxContrast(){
+            return getInt(KEY_MAX_CONTRAST, 0);
+        }
+
+        /**
+         * Get default contrast level
+         * 
+         * @return default contrast level
+         * @hide
+         */
+        public int getDefaultContrast() {
+            return getInt(KEY_DEFAULT_CONTRAST, 0);
+        }
+
+        /**
+         * Get Saturation level
+         *
+         * @return saturation level
+         * @hide
+         */
+        public int getSaturation(){
+            return getInt(KEY_SATURATION, 0);
+        }
+
+        /**
+         * Set Saturation Level
+         *
+         * @param saturation level
+         * @hide
+         */
+        public void setSaturation(int saturation){
+            if((saturation < 0 ) || (saturation > getMaxSaturation()))
+                throw new IllegalArgumentException(
+                        "Invalid Saturation " + saturation);
+
+            set(KEY_SATURATION, String.valueOf(saturation));
+        }
+
+        /**
+         * Get Max Saturation Level
+         *
+         * @return max contrast level
+         * @hide
+         */
+        public int getMaxSaturation(){
+            return getInt(KEY_MAX_SATURATION, 0);
+        }
+
+        /**
+         * Get default saturation level
+         * 
+         * @return default saturation level
+         * @hide
+         */
+        public int getDefaultSaturation() {
+            return getInt(KEY_DEFAULT_SATURATION, 0);
+        }
+
+        /**
+         * Get brightness level
+         *
+         * @return brightness level
+         * @hide
+         */
+        public int getBrightness(){
+            return getInt(KEY_BRIGHTNESS, 0);
+        }
+
+        /**
+         * Set brightness level
+         *
+         * @param brightness level
+         * @hide
+         */
+        public void setBrightness(int brightness){
+            if((brightness < 0 ) || (brightness > getMaxBrightness()))
+                throw new IllegalArgumentException(
+                        "Invalid Brightness " + brightness);
+
+            set(KEY_BRIGHTNESS, String.valueOf(brightness));
+        }
+
+        /**
+         * Get Max Brightness Level
+         *
+         * @return max brightness level
+         * @hide
+         */
+        public int getMaxBrightness(){
+            return getInt(KEY_MAX_BRIGHTNESS, 0);
+        }
+
+        /**
+         * Get default brightness level
+         * 
+         * @return default brightness level
+         * @hide
+         */
+        public int getDefaultBrightness() {
+            return getInt(KEY_DEFAULT_BRIGHTNESS, 0);
+        }
 
         /**
          * Gets the current antibanding setting.
@@ -1999,6 +2375,39 @@ public class Camera {
          */
         public List<String> getSupportedAntibanding() {
             String str = get(KEY_ANTIBANDING + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+        /**
+         * Gets the frame rate mode setting.
+         *
+         * @return one of FRAME_RATE_XXX_MODE string constant. null if this
+         *         setting is not supported.
+         * @hide
+         */
+        public String getPreviewFrameRateMode() {
+            return get(KEY_PREVIEW_FRAME_RATE_MODE);
+        }
+
+        /**
+         * Sets the frame rate mode.
+         *
+         * @param value FRAME_RATE_XXX_MODE string constants.
+         * @hide
+         */
+        public void setPreviewFrameRateMode(String value) {
+            set(KEY_PREVIEW_FRAME_RATE_MODE, value);
+        }
+
+        /**
+         * Gets the supported frame rate modes.
+         *
+         * @return a List of FRAME_RATE_XXX_MODE string constant. null if this
+         *         setting is not supported.
+         * @hide
+         */
+        public List<String> getSupportedPreviewFrameRateModes() {
+            String str = get(KEY_PREVIEW_FRAME_RATE_MODE + SUPPORTED_VALUES_SUFFIX);
             return split(str);
         }
 
@@ -2256,7 +2665,7 @@ public class Camera {
          */
         public boolean isZoomSupported() {
             String str = get(KEY_ZOOM_SUPPORTED);
-            return TRUE.equals(str);
+            return TRUE.equals(str) && getMaxZoom() > 0;
         }
 
         /**
@@ -2334,16 +2743,177 @@ public class Camera {
             splitFloat(get(KEY_FOCUS_DISTANCES), output);
         }
 
+        /**
+         * Gets the current Continuous AF setting.
+         *
+         * @return one of CONTINUOUS_AF_XXX string constant. null if continuous AF
+         *         setting is not supported.
+         *
+         * @hide
+         */
+        public String getContinuousAf() {
+            return get(KEY_CAF);
+        }
+
+        /**
+         * Sets the current Continuous AF mode.
+         * @param value CONTINUOUS_AF_XXX string constants.
+         *
+         * @hide
+         */
+        public void setContinuousAf(String value) {
+            set(KEY_CAF, value);
+        }
+
+        /**
+         * Gets the supported Continuous AF modes.
+         *
+         * @return a List of CONTINUOUS_AF_XXX string constant. null if continuous AF
+         *         setting is not supported.
+         *
+         * @hide
+         */
+        public List<String> getSupportedContinuousAfModes() {
+            String str = get(KEY_CAF + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+        /**
+         * Gets the current ISO setting.
+         *
+         * @return one of ISO_XXX string constant. null if ISO
+         *         setting is not supported.
+         * @hide
+         */
+        public String getISOValue() {
+            return get(KEY_ISO_MODE);
+        }
+
+        /**
+         * Sets the ISO.
+         *
+         * @param iso ISO_XXX string constant.
+         * @hide
+         */
+        public void setISOValue(String iso) {
+            set(KEY_ISO_MODE, iso);
+        }
+
+         /**
+         * Gets the supported ISO values.
+         *
+         * @return a List of FLASH_MODE_XXX string constants. null if flash mode
+         *         setting is not supported.
+         * @hide
+         */
+        public List<String> getSupportedIsoValues() {
+            String str = get(KEY_ISO_MODE + SUPPORTED_VALUES_SUFFIX);
+            if (str == null && get("nv-mode-hint") != null) {
+                /* Support NV cams */
+                KEY_ISO_MODE = "nv-picture-iso";
+                str = get(KEY_ISO_MODE + SUPPORTED_VALUES_SUFFIX);
+            } else if (str == null && get("iso-mode-values") != null) {
+                /* Support OMAP cams */
+                KEY_ISO_MODE = "iso-mode";
+                str = get(KEY_ISO_MODE + SUPPORTED_VALUES_SUFFIX);
+            }
+            return split(str);
+        }
+
+         /**
+         * Gets the current LensShade Mode.
+         *
+         * @return LensShade Mode
+         * @hide
+         */
+        public String getLensShade() {
+            return get(KEY_LENSSHADE);
+        }
+
+        /**
+         * Sets the current LensShade Mode.
+         *
+         * @return LensShade Mode
+         * @hide
+         */
+        public void setLensShade(String lensshade) {
+            set(KEY_LENSSHADE, lensshade);
+        }
+
+         /**
+         * Gets the supported Lensshade modes.
+         *
+         * @return a List of LENS_MODE_XXX string constants. null if lens mode
+         *         setting is not supported.
+         * @hide
+         */
+        public List<String> getSupportedLensShadeModes() {
+            String str = get(KEY_LENSSHADE + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+         /**
+         * Gets the current auto exposure setting.
+         *
+         * @return one of AUTO_EXPOSURE_XXX string constant. null if auto exposure
+         *         setting is not supported.
+         * @hide
+         */
+        public String getAutoExposure() {
+            return get(KEY_AUTO_EXPOSURE);
+        }
+
+        /**
+         * Sets the current auto exposure setting.
+         *
+         * @param value AUTO_EXPOSURE_XXX string constants.
+         * @hide
+         */
+        public void setAutoExposure(String value) {
+            set(KEY_AUTO_EXPOSURE, value);
+        }
+
+        /**
+         * Gets the supported auto exposure setting.
+         *
+         * @return a List of AUTO_EXPOSURE_XXX string constants. null if auto exposure
+         *         setting is not supported.
+         * @hide
+         */
+        public List<String> getSupportedAutoexposure() {
+            String str = get(KEY_AUTO_EXPOSURE + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+        /**
+         * Sets the smart-contrast feature
+         * @param enabled SMART_CONTRAST desired status.
+         * @hide
+         */
+        public void setSmartContrastEnabled(boolean enabled) {
+            set(KEY_SMART_CONTRAST, enabled ? "on" : "off");
+        }
+        
+        /**
+         * Gets the value of smart-contrast
+         *
+         * @return if smart-contrast is enabled
+         * @hide
+         */
+        public boolean isSmartContrastEnabled() {
+            return "on".equals(get(KEY_SMART_CONTRAST));
+        }
+        
         // Splits a comma delimited string to an ArrayList of String.
         // Return null if the passing string is null or the size is 0.
         private ArrayList<String> split(String str) {
             if (str == null) return null;
 
-            // Use StringTokenizer because it is faster than split.
-            StringTokenizer tokenizer = new StringTokenizer(str, ",");
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(',');
+            splitter.setString(str);
             ArrayList<String> substrings = new ArrayList<String>();
-            while (tokenizer.hasMoreElements()) {
-                substrings.add(tokenizer.nextToken());
+            for (String s : splitter) {
+                substrings.add(s);
             }
             return substrings;
         }
@@ -2353,11 +2923,11 @@ public class Camera {
         private ArrayList<Integer> splitInt(String str) {
             if (str == null) return null;
 
-            StringTokenizer tokenizer = new StringTokenizer(str, ",");
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(',');
+            splitter.setString(str);
             ArrayList<Integer> substrings = new ArrayList<Integer>();
-            while (tokenizer.hasMoreElements()) {
-                String token = tokenizer.nextToken();
-                substrings.add(Integer.parseInt(token));
+            for (String s : splitter) {
+                substrings.add(Integer.parseInt(s));
             }
             if (substrings.size() == 0) return null;
             return substrings;
@@ -2366,11 +2936,11 @@ public class Camera {
         private void splitInt(String str, int[] output) {
             if (str == null) return;
 
-            StringTokenizer tokenizer = new StringTokenizer(str, ",");
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(',');
+            splitter.setString(str);
             int index = 0;
-            while (tokenizer.hasMoreElements()) {
-                String token = tokenizer.nextToken();
-                output[index++] = Integer.parseInt(token);
+            for (String s : splitter) {
+                output[index++] = Integer.parseInt(s);
             }
         }
 
@@ -2378,16 +2948,19 @@ public class Camera {
         private void splitFloat(String str, float[] output) {
             if (str == null) return;
 
-            StringTokenizer tokenizer = new StringTokenizer(str, ",");
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(',');
+            splitter.setString(str);
             int index = 0;
-            while (tokenizer.hasMoreElements()) {
-                String token = tokenizer.nextToken();
-                output[index++] = Float.parseFloat(token);
+            for (String s : splitter) {
+                output[index++] = Float.parseFloat(s);
             }
         }
 
         // Returns the value of a float parameter.
         private float getFloat(String key, float defaultValue) {
+            if (!mMap.containsKey(key)) {
+                return defaultValue;
+            }
             try {
                 return Float.parseFloat(mMap.get(key));
             } catch (NumberFormatException ex) {
@@ -2397,6 +2970,9 @@ public class Camera {
 
         // Returns the value of a integer parameter.
         private int getInt(String key, int defaultValue) {
+            if (!mMap.containsKey(key)) {
+                return defaultValue;
+            }
             try {
                 return Integer.parseInt(mMap.get(key));
             } catch (NumberFormatException ex) {
@@ -2409,10 +2985,11 @@ public class Camera {
         private ArrayList<Size> splitSize(String str) {
             if (str == null) return null;
 
-            StringTokenizer tokenizer = new StringTokenizer(str, ",");
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(',');
+            splitter.setString(str);
             ArrayList<Size> sizeList = new ArrayList<Size>();
-            while (tokenizer.hasMoreElements()) {
-                Size size = strToSize(tokenizer.nextToken());
+            for (String s : splitter) {
+                Size size = strToSize(s);
                 if (size != null) sizeList.add(size);
             }
             if (sizeList.size() == 0) return null;
@@ -2458,6 +3035,38 @@ public class Camera {
 
             if (rangeList.size() == 0) return null;
             return rangeList;
+        }
+
+        // Splits a comma delimited string to an ArrayList of Coordinate.
+        // Return null if the passing string is null or the Coordinate is 0.
+        private ArrayList<Coordinate> splitCoordinate(String str) {
+            if (str == null) return null;
+
+            TextUtils.StringSplitter splitter = new TextUtils.SimpleStringSplitter(',');
+            splitter.setString(str);
+            ArrayList<Coordinate> coordinateList = new ArrayList<Coordinate>();
+            for (String s : splitter) {
+                Coordinate c = strToCoordinate(s);
+                if (c != null) coordinateList.add(c);
+            }
+            if (coordinateList.size() == 0) return null;
+            return coordinateList;
+        }
+
+        // Parses a string (ex: "500x500") to Coordinate object.
+        // Return null if the passing string is null.
+        private Coordinate strToCoordinate(String str) {
+            if (str == null) return null;
+
+            int pos = str.indexOf('x');
+            if (pos != -1) {
+                String x = str.substring(0, pos);
+                String y = str.substring(pos + 1);
+                return new Coordinate(Integer.parseInt(x),
+                                Integer.parseInt(y));
+            }
+            Log.e(TAG, "Invalid Coordinate parameter string=" + str);
+            return null;
         }
     };
 }
