@@ -127,17 +127,17 @@
     <string name="contentServiceTooManyDeletesNotificationDesc" msgid="8100981435080696431">"Too many <xliff:g id="CONTENT_TYPE">%s</xliff:g> deletions."</string>
     <string name="low_memory" msgid="6632412458436461203">"Phone storage is full! Delete some files to free space."</string>
     <string name="me" msgid="6545696007631404292">"Me"</string>
-    <string name="power_dialog" msgid="1319919075463988638">"Phone options"</string>
+    <string name="power_dialog" msgid="1319919075463988638">"iTab options"</string>
     <string name="silent_mode" msgid="7167703389802618663">"Silent mode"</string>
     <string name="turn_on_radio" msgid="3912793092339962371">"Turn on wireless"</string>
     <string name="turn_off_radio" msgid="8198784949987062346">"Turn off wireless"</string>
     <string name="screen_lock" msgid="799094655496098153">"Screen lock"</string>
     <string name="power_off" msgid="4266614107412865048">"Power off"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Shutting down…"</string>
-    <string name="shutdown_confirm" msgid="649792175242821353">"Your phone will shut down."</string>
+    <string name="shutdown_confirm" msgid="649792175242821353">"Your iTab will shut down."</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Recent"</string>
     <string name="no_recent_tasks" msgid="279702952298056674">"No recent applications."</string>
-    <string name="global_actions" msgid="2406416831541615258">"Phone options"</string>
+    <string name="global_actions" msgid="2406416831541615258">"iTab options"</string>
     <string name="global_action_lock" msgid="2844945191792119712">"Screen lock"</string>
     <string name="global_action_power_off" msgid="4471879440839879722">"Power off"</string>
     <string name="global_action_toggle_silent_mode" msgid="8219525344246810925">"Silent mode"</string>
@@ -186,9 +186,9 @@
     <string name="permlab_sendSms" msgid="5600830612147671529">"send SMS messages"</string>
     <string name="permdesc_sendSms" msgid="1946540351763502120">"Allows application to send SMS messages. Malicious applications may cost you money by sending messages without your confirmation."</string>
     <string name="permlab_readSms" msgid="4085333708122372256">"read SMS or MMS"</string>
-    <string name="permdesc_readSms" msgid="3002170087197294591">"Allows application to read SMS messages stored on your phone or SIM card. Malicious applications may read your confidential messages."</string>
+    <string name="permdesc_readSms" msgid="3002170087197294591">"Allows application to read SMS messages stored on your iTab or SIM card. Malicious applications may read your confidential messages."</string>
     <string name="permlab_writeSms" msgid="6881122575154940744">"edit SMS or MMS"</string>
-    <string name="permdesc_writeSms" msgid="6299398896177548095">"Allows application to write to SMS messages stored on your phone or SIM card. Malicious applications may delete your messages."</string>
+    <string name="permdesc_writeSms" msgid="6299398896177548095">"Allows application to write to SMS messages stored on your iTab or SIM card. Malicious applications may delete your messages."</string>
     <string name="permlab_receiveWapPush" msgid="8258226427716551388">"receive WAP"</string>
     <string name="permdesc_receiveWapPush" msgid="5979623826128082171">"Allows application to receive and process WAP messages. Malicious applications may monitor your messages or delete them without showing them to you."</string>
     <string name="permlab_getTasks" msgid="5005277531132573353">"retrieve running applications"</string>
@@ -214,7 +214,7 @@
     <string name="permlab_stopAppSwitches" msgid="4138608610717425573">"prevent app switches"</string>
     <string name="permdesc_stopAppSwitches" msgid="3857886086919033794">"Prevents the user from switching to another application."</string>
     <string name="permlab_runSetActivityWatcher" msgid="7811586187574696296">"monitor and control all application launching"</string>
-    <string name="permdesc_runSetActivityWatcher" msgid="3228701938345388092">"Allows an application to monitor and control how the system launches activities. Malicious applications may compromise the system completely. This permission is needed only for development, never for normal phone usage."</string>
+    <string name="permdesc_runSetActivityWatcher" msgid="3228701938345388092">"Allows an application to monitor and control how the system launches activities. Malicious applications may compromise the system completely. This permission is needed only for development, never for normal iTab usage."</string>
     <string name="permlab_broadcastPackageRemoved" msgid="2576333434893532475">"send package removed broadcast"</string>
     <string name="permdesc_broadcastPackageRemoved" msgid="3453286591439891260">"Allows an application to broadcast a notification that an application package has been removed. Malicious applications may use this to kill any other application running."</string>
     <string name="permlab_broadcastSmsReceived" msgid="5689095009030336593">"send SMS-received broadcast"</string>
@@ -232,13 +232,13 @@
     <string name="permlab_internalSystemWindow" msgid="2148563628140193231">"display unauthorised windows"</string>
     <string name="permdesc_internalSystemWindow" msgid="5895082268284998469">"Allows the creation of windows that are intended to be used by the internal system user interface. Not for use by normal applications."</string>
     <string name="permlab_systemAlertWindow" msgid="3372321942941168324">"display system-level alerts"</string>
-    <string name="permdesc_systemAlertWindow" msgid="5109622689323490558">"Allows an application to show system-alert windows. Malicious applications can take over the entire screen of the phone."</string>
+    <string name="permdesc_systemAlertWindow" msgid="5109622689323490558">"Allows an application to show system-alert windows. Malicious applications can take over the entire screen of the iTab."</string>
     <string name="permlab_setAnimationScale" msgid="2805103241153907174">"modify global animation speed"</string>
     <string name="permdesc_setAnimationScale" msgid="7181522138912391988">"Allows an application to change the global animation speed (faster or slower animations) at any time."</string>
     <string name="permlab_manageAppTokens" msgid="17124341698093865">"manage application tokens"</string>
     <string name="permdesc_manageAppTokens" msgid="977127907524195988">"Allows applications to create and manage their own tokens, bypassing their normal Z-ordering. Should never be needed for normal applications."</string>
     <string name="permlab_injectEvents" msgid="1378746584023586600">"press keys and control buttons"</string>
-    <string name="permdesc_injectEvents" msgid="3946098050410874715">"Allows an application to deliver its own input events (key presses, etc.) to other applications. Malicious applications can use this to take over the phone."</string>
+    <string name="permdesc_injectEvents" msgid="3946098050410874715">"Allows an application to deliver its own input events (key presses, etc.) to other applications. Malicious applications can use this to take over the iTab."</string>
     <string name="permlab_readInputState" msgid="469428900041249234">"record what you type and actions that you take"</string>
     <string name="permdesc_readInputState" msgid="5132879321450325445">"Allows applications to watch the keys that you press even when interacting with another application (such as entering a password). Should never be needed for normal applications."</string>
     <string name="permlab_bindInputMethod" msgid="3360064620230515776">"bind to an input method"</string>
@@ -264,7 +264,7 @@
     <string name="permlab_installPackages" msgid="335800214119051089">"directly install applications"</string>
     <string name="permdesc_installPackages" msgid="526669220850066132">"Allows an application to install new or updated Android packages. Malicious applications can use this to add new applications with arbitrarily powerful permissions."</string>
     <string name="permlab_clearAppCache" msgid="4747698311163766540">"delete all application cache data"</string>
-    <string name="permdesc_clearAppCache" msgid="7740465694193671402">"Allows an application to free phone storage by deleting files in application cache directory. Access is usually very restricted to system process."</string>
+    <string name="permdesc_clearAppCache" msgid="7740465694193671402">"Allows an application to free iTab storage by deleting files in application cache directory. Access is usually very restricted to system process."</string>
     <string name="permlab_movePackage" msgid="728454979946503926">"Move application resources"</string>
     <string name="permdesc_movePackage" msgid="6323049291923925277">"Allows an application to move application resources from internal to external media and vice versa."</string>
     <string name="permlab_readLogs" msgid="6615778543198967614">"read sensitive log data"</string>
