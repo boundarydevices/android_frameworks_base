@@ -265,7 +265,7 @@
 
     <!-- Power Dialog --> <skip />
     <!-- Title for the Phone Options dialog to lock the screen, turn off the phone etc. -->
-    <string name="power_dialog">Phone options</string>
+    <string name="power_dialog">iTab™ options</string>
     <!-- Button to turn on silent mode, within the Phone Options dialog -->
     <string name="silent_mode">Silent mode</string>
     <!-- Button to turn on the radio, within the Phone Options dialog -->
@@ -281,7 +281,7 @@
     <string name="shutdown_progress">Shutting down\u2026</string>
 
     <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the phone, there will be a confirmation dialog.  This is the message. -->
-    <string name="shutdown_confirm">Your phone will shut down.</string>
+    <string name="shutdown_confirm">Your iTab™ will shut down.</string>
 
     <!-- Recent Tasks dialog: title -->
     <string name="recent_tasks_title">Recent</string>
@@ -289,7 +289,7 @@
     <string name="no_recent_tasks">No recent applications.</string>
 
     <!-- Title of the Global Actions Dialog -->
-    <string name="global_actions">Phone options</string>
+    <string name="global_actions">iTab™ options</string>
 
     <!-- label for item that locks the phone in the phone options dialog -->
     <string name="global_action_lock">Screen lock</string>
