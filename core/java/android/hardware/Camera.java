@@ -928,6 +928,7 @@ public class Camera {
     public Parameters getParameters() {
         Parameters p = new Parameters();
         String s = native_getParameters();
+        Log.d(TAG,"native params:" + s);
         p.unflatten(s);
         return p;
     }
