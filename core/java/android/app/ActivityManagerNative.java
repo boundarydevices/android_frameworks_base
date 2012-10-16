@@ -2182,6 +2182,7 @@ class ActivityManagerProxy implements IActivityManager
     }
     public void setRequestedOrientation(IBinder token, int requestedOrientation)
             throws RemoteException {
+    	Log.v("ActivityManager", "setRequestedOrientation ");
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         data.writeInterfaceToken(IActivityManager.descriptor);
@@ -2193,6 +2194,7 @@ class ActivityManagerProxy implements IActivityManager
         reply.recycle();
     }
     public int getRequestedOrientation(IBinder token) throws RemoteException {
+    	Log.v("ActivityManager", "getRequestedOrientation ");
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         data.writeInterfaceToken(IActivityManager.descriptor);

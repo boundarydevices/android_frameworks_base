@@ -117,17 +117,24 @@ public abstract class OrientationEventListener {
         private static final int _DATA_Z = 2;
         
         public void onSensorChanged(SensorEvent event) {
+        	Log.v(TAG,"onSensorChanged(SensorEvent event)");
             float[] values = event.values;
             int orientation = ORIENTATION_UNKNOWN;
             float X = -values[_DATA_X];
             float Y = -values[_DATA_Y];
             float Z = -values[_DATA_Z];        
             float magnitude = X*X + Y*Y;
+            Log.v(TAG,"SensorEventListenerImpl X: " + X);
+            Log.v(TAG,"SensorEventListenerImpl Y: " + Y);
+            Log.v(TAG,"SensorEventListenerImpl Z: " + Z);
+            Log.v(TAG,"SensorEventListenerImpl magnitude: " + magnitude);
             // Don't trust the angle if the magnitude is small compared to the y value
             if (magnitude * 4 >= Z*Z) {
                 float OneEightyOverPi = 57.29577957855f;
                 float angle = (float)Math.atan2(-Y, X) * OneEightyOverPi;
+                Log.v(TAG,"SensorEventListenerImpl angle: " + angle);
                 orientation = 90 - (int)Math.round(angle);
+                Log.v(TAG,"SensorEventListenerImpl orientation: " + orientation);
                 // normalize to 0 - 359 range
                 while (orientation >= 360) {
                     orientation -= 360;

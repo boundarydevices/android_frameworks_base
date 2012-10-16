@@ -2299,6 +2299,7 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     public void setRequestedOrientation(IBinder token,
             int requestedOrientation) {
+    	Slog.v(TAG,"setRequestedOrientation setRequestedOrientation(IBinder token,");
         synchronized (this) {
             int index = mMainStack.indexOfTokenLocked(token);
             if (index < 0) {
@@ -2322,6 +2323,7 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     public int getRequestedOrientation(IBinder token) {
         synchronized (this) {
+        	Slog.v(TAG,"getRequestedOrientation setRequestedOrientation(IBinder token)");
             int index = mMainStack.indexOfTokenLocked(token);
             if (index < 0) {
                 return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;

@@ -39,7 +39,6 @@ import static android.view.WindowManager.LayoutParams.TYPE_WALLPAPER;
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.policy.PolicyManager;
 import com.android.internal.policy.impl.PhoneWindowManager;
-import com.android.internal.view.BaseInputHandler;
 import com.android.internal.view.IInputContext;
 import com.android.internal.view.IInputMethodClient;
 import com.android.internal.view.IInputMethodManager;
@@ -58,8 +57,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
@@ -106,8 +103,6 @@ import android.view.IWindowSession;
 import android.view.InputChannel;
 import android.view.InputDevice;
 import android.view.InputEvent;
-import android.view.InputHandler;
-import android.view.InputQueue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -515,29 +510,6 @@ public class WindowManagerService extends IWindowManager.Stub
     Surface mBackgroundFillerSurface = null;
     boolean mBackgroundFillerShown = false;
 
-    // Mouse pointer handling
-    Handler mHandler = new Handler();
-    Surface mPointerSurface;
-    boolean mPointerVisible;
-    int mPointerX;
-    int mPointerY;
-    InputChannel mPointerInputChannel;
-    final InputHandler mPointerInputHandler = new BaseInputHandler() {
-        @Override
-        public void handleMotion(MotionEvent event, Runnable finishedCallback) {
-            finishedCallback.run();
-
-            boolean isMouse = ((event.getSource() & InputDevice.SOURCE_MOUSE) ^ InputDevice.SOURCE_MOUSE) == 0;
-            if (isMouse) {
-                mPointerX = (int) event.getRawX();
-                mPointerY = (int) event.getRawY();
-                showPointer();
-            } else if (mPointerVisible) {
-                hidePointer();
-            }
-        }
-    };
-
     public static WindowManagerService main(Context context,
             PowerManagerService pm, boolean haveInputMethods) {
         WMThread thr = new WMThread(context, pm, haveInputMethods);
@@ -671,7 +643,6 @@ public class WindowManagerService extends IWindowManager.Stub
         }
 
         mInputManager.start();
-        startMouseMonitor();
 
         // Add ourself to the Watchdog monitors.
         Watchdog.getInstance().addMonitor(this);
@@ -4571,6 +4542,13 @@ public class WindowManagerService extends IWindowManager.Stub
             mLayoutNeeded = true;
             startFreezingDisplayLocked();
             Slog.i(TAG, "Setting rotation to " + rotation + ", animFlags=" + animFlags);
+            if ( rotation == 0 ) {
+            	rotation = 2;
+            	 mRotation = rotation;
+            }else if ( rotation == 2 ) {
+            	rotation = 0;
+           	 mRotation = rotation;
+           }
             mInputManager.setDisplayOrientation(0, rotation);
             if (mDisplayEnabled) {
                 Surface.setOrientation(0, rotation, animFlags);
@@ -4972,46 +4950,6 @@ public class WindowManagerService extends IWindowManager.Stub
         }
 
         return null;
-    }
-
-    private void showPointer() {
-        if (mPointerSurface == null) {
-            Bitmap pointer = BitmapFactory.decodeResource(mContext.getResources(),
-                    com.android.internal.R.drawable.pointer);
-
-            try {
-                mPointerSurface = new Surface(mFxSession, 0, -1,
-                                              pointer.getWidth(),
-                                              pointer.getHeight(),
-                                              PixelFormat.TRANSPARENT,
-                                              Surface.FX_SURFACE_NORMAL);
-                Rect dirty = new Rect();
-                dirty.left = 0;
-                dirty.top = 0;
-                dirty.right = pointer.getWidth();
-                dirty.bottom = pointer.getHeight();
-
-                Canvas canvas = mPointerSurface.lockCanvas(dirty);
-                canvas.drawBitmap(pointer, 0, 0, new Paint());
-                mPointerSurface.unlockCanvasAndPost(canvas);
-            } catch (Surface.OutOfResourcesException e) {
-                Log.e(TAG, "Failed to create mouse surface", e);
-            }
-        }
-
-        mPointerVisible = true;
-        requestAnimationLocked(0);
-    }
-
-    private void hidePointer() {
-        mPointerVisible = false;
-        requestAnimationLocked(0);
-    }
-
-    private void startMouseMonitor() {
-        mPointerInputChannel = monitorInput("MousePointer");
-        InputQueue.registerInputChannel(mPointerInputChannel,
-                mPointerInputHandler, mHandler.getLooper().getQueue());
     }
 
     /*
@@ -9589,18 +9527,6 @@ public class WindowManagerService extends IWindowManager.Stub
                     Slog.w(TAG, "Illegal argument exception hiding blur surface");
                 }
                 mBlurShown = false;
-            }
-
-            // Draw the mouse cursor, if necessary
-            if (mPointerSurface != null) {
-                if (mPointerVisible) {
-                    WindowState top = (WindowState)mWindows.get(mWindows.size() - 1);
-                    mPointerSurface.setPosition(mPointerX, mPointerY);
-                    mPointerSurface.setLayer(top.mAnimLayer + 1);
-                    mPointerSurface.show();
-                } else {
-                    mPointerSurface.hide();
-                }
             }
 
             if (SHOW_TRANSACTIONS) Slog.i(TAG, "<<< CLOSE TRANSACTION");

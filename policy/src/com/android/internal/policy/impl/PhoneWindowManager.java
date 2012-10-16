@@ -314,8 +314,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ACCELEROMETER_ROTATION), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-						Settings.System.XEC_DLS_CONTROL), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SCREEN_OFF_TIMEOUT), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.POINTER_LOCATION), false, this);
@@ -694,6 +692,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private int readRotation(int resID) {
         try {
             int rotation = mContext.getResources().getInteger(resID);
+            Log.i(TAG, "readRotation, rotation changed to " +rotation);
             switch (rotation) {
                 case 0:
                     return Surface.ROTATION_0;
@@ -1786,7 +1785,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 } else {
                     // Otherwise, wake the device ourselves.
                     result |= ACTION_POKE_USER_ACTIVITY;
-                    result |= ACTION_WAKE_TO_SLEEP;
                 }
             }
         }
@@ -1893,14 +1891,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         }
                     }
                     interceptPowerKeyDown(!isScreenOn || hungUp);
-                    if((result & ACTION_WAKE_TO_SLEEP) !=0 && mPowerManager.getSystemState()==2)
-                    {
-                        // only try to turn off the screen if we didn't already hang up
-                        mPowerKeyHandled = false;
-                        mHandler.postDelayed(mPowerLongPress,
-                                ViewConfiguration.getGlobalActionKeyTimeout());
-                        result &= ~ACTION_PASS_TO_USER;                        
-                    }
                 } else {
                     if (interceptPowerKeyUp(canceled)) {
                         result = (result & ~ACTION_POKE_USER_ACTIVITY) | ACTION_GO_TO_SLEEP;
@@ -2060,6 +2050,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     public int rotationForOrientationLw(int orientation, int lastRotation,
             boolean displayEnabled) {
+    	Log.i(TAG, "rotationForOrientationLw, mPortraitRotation changed to " +mPortraitRotation);
 
         if (mPortraitRotation < 0) {
             // Initialize the rotation angles for each orientation once.
@@ -2071,14 +2062,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mUpsideDownRotation = Surface.ROTATION_270;
                 mSeascapeRotation = Surface.ROTATION_180;
             } else {
-                mPortraitRotation = Surface.ROTATION_0;
-                mLandscapeRotation = Surface.ROTATION_90;
-                mUpsideDownRotation = Surface.ROTATION_180;
-                mSeascapeRotation = Surface.ROTATION_270;
+                mPortraitRotation = Surface.ROTATION_270;
+                mLandscapeRotation = Surface.ROTATION_0;
+                mUpsideDownRotation = Surface.ROTATION_90;
+                mSeascapeRotation = Surface.ROTATION_180;
             }
         }
 
         synchronized (mLock) {
+        	Log.i(TAG, "rotationForOrientationLw, rotation changed to " +orientation);
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
                     //always return portrait if orientation set to portrait
@@ -2097,12 +2089,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     mOrientationListener.setAllow180Rotation(
                             isLandscapeOrSeascape(Surface.ROTATION_180));
                     return getCurrentLandscapeRotation(lastRotation);
+                	//return mSeascapeRotation;
                 case ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT:
                     mOrientationListener.setAllow180Rotation(
                             !isLandscapeOrSeascape(Surface.ROTATION_180));
                     return getCurrentPortraitRotation(lastRotation);
+                	//return mUpsideDownRotation;
             }
-
             mOrientationListener.setAllow180Rotation(
                     orientation == ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
@@ -2119,7 +2112,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 if (useSensorForOrientationLp(orientation)) {
                     return mOrientationListener.getCurrentRotation(lastRotation);
                 }
-                return Surface.ROTATION_0;
+                return Surface.ROTATION_270;
             }
         }
     }
