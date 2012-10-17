@@ -470,11 +470,6 @@ public class SensorManager
                                 if (listener.hasSensor(sensorObject)) {
                                     // this is asynchronous (okay to call
                                     // with sListeners lock held).
-                                	Log.v(TAG, "SensorThreadRunnable");                                	
-                                	Log.v(TAG, "SensorThreadRunnable X:" + values[0]);
-                                	Log.v(TAG, "SensorThreadRunnable Y:" + values[1]);
-                                	Log.v(TAG, "SensorThreadRunnable Z:" + values[2]);
-                                	Log.v(TAG, "SensorThreadRunnable accuracy:" + accuracy);
                                     listener.onSensorChangedLocked(sensorObject,
                                             values, timestamp, accuracy);
                                 }
@@ -510,13 +505,11 @@ public class SensorManager
                     final SensorEvent t = (SensorEvent)msg.obj;
                     final int handle = t.sensor.getHandle();
                     
-                    Log.v(TAG, "ListenerDelegate t.sensor.getType()" + t.sensor.getType());
                     switch (t.sensor.getType()) {
                     
                         // Only report accuracy for sensors that support it.
                         case Sensor.TYPE_MAGNETIC_FIELD:
                         case Sensor.TYPE_ORIENTATION:
-                        	Log.v(TAG, "ListenerDelegate TYPE_ORIENTATION");
                             // call onAccuracyChanged() only if the value changes
                             final int accuracy = mSensorAccuracies.get(handle);
                             if ((t.accuracy >= 0) && (accuracy != t.accuracy)) {
@@ -525,10 +518,8 @@ public class SensorManager
                             }
                             break;
                         default:
-                        	Log.v(TAG, "ListenerDelegate default");                                	
                             // For other sensors, just report the accuracy once
                             if (mFirstEvent.get(handle) == false) {
-                            	Log.v(TAG, "mFirstEvent.get(handle) == false");
                                 mFirstEvent.put(handle, true);
                                 mSensorEventListener.onAccuracyChanged(
                                         t.sensor, SENSOR_STATUS_ACCURACY_HIGH);
@@ -597,10 +588,6 @@ public class SensorManager
             v[0] = values[0];
             v[1] = values[1];
             v[2] = values[2];
-        	Log.v(TAG, "onSensorChangedLocked");                                	
-        	Log.v(TAG, "onSensorChangedLocked X:" + values[0]);
-        	Log.v(TAG, "onSensorChangedLocked Y:" + values[1]);
-        	Log.v(TAG, "onSensorChangedLocked Z:" + values[2]);
             
             t.timestamp = timestamp[0];
             t.accuracy = accuracy;
@@ -1611,9 +1598,6 @@ public class SensorManager
             values[1] = (float)Math.asin(-R[9]);
             values[2] = (float)Math.atan2(-R[8], R[10]);
         }
-        Log.v(TAG,"getOrientation x:" + values[0]);
-        Log.v(TAG,"getOrientation y:" + values[1]);
-        Log.v(TAG,"getOrientation z:" + values[2]);
 
         return values;
     }
@@ -1657,7 +1641,6 @@ public class SensorManager
      * {@hide}
      */
     public void onRotationChanged(int rotation) {
-        Log.v(TAG,"onRotationChanged rotation:" + rotation);
 
         synchronized(sListeners) {
             sRotation  = rotation;
@@ -1740,11 +1723,6 @@ public class SensorManager
             float x = values[0];
             float y = values[1];
             float z = values[2];
-            Log.v(TAG,"mapSensorDataToWindow");
-            Log.v(TAG,"mapSensorDataToWindow x:" + values[0]);
-            Log.v(TAG,"mapSensorDataToWindow y:" + values[1]);
-            Log.v(TAG,"mapSensorDataToWindow z:" + values[2]);
-            Log.v(TAG,"mapSensorDataToWindow orientation:" + orientation);            
 
             switch (sensor) {
                 case SensorManager.SENSOR_ORIENTATION:
@@ -1768,9 +1746,6 @@ public class SensorManager
             values[4] = y;
             values[5] = z;            
             
-            Log.v(TAG,"mapSensorDataToWindow ax:" + values[0]);
-            Log.v(TAG,"mapSensorDataToWindow ay:" + values[1]);
-            Log.v(TAG,"mapSensorDataToWindow az:" + values[2]);
 
             if ((orientation & Surface.ROTATION_90) != 0) {
                 // handles 90 and 270 rotation
@@ -1809,9 +1784,6 @@ public class SensorManager
                         break;
                 }
             }
-            Log.v(TAG,"mapSensorDataToWindow bx:" + values[0]);
-            Log.v(TAG,"mapSensorDataToWindow by:" + values[1]);
-            Log.v(TAG,"mapSensorDataToWindow bz:" + values[2]);
    
         }
     }

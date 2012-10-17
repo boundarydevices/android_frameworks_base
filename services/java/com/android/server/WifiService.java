@@ -260,7 +260,7 @@ public class WifiService extends IWifiManager.Stub {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         // clear our flag indicating the user has overwridden airplane mode
-                        mAirplaneModeOverwridden = true;
+                        mAirplaneModeOverwridden = false;
                         // on airplane disable, restore Wifi if the saved state indicates so
                         if (!isAirplaneModeOn() && testAndClearWifiSavedState()) {
                             persistWifiEnabled(true);
@@ -295,6 +295,8 @@ public class WifiService extends IWifiManager.Stub {
         /* Start if Wi-Fi is enabled or the saved state indicates Wi-Fi was on */
         boolean wifiEnabled = !isAirplaneModeOn()
                 && (getPersistedWifiEnabled() || testAndClearWifiSavedState());
+    	Slog.d(TAG, "isAirplaneModeOn " + isAirplaneModeOn());
+
         Slog.i(TAG, "WifiService starting up with Wi-Fi " +
                 (wifiEnabled ? "enabled" : "disabled"));
         setWifiEnabled(wifiEnabled);
@@ -362,6 +364,7 @@ public class WifiService extends IWifiManager.Stub {
     private boolean getPersistedWifiEnabled() {
         final ContentResolver cr = mContext.getContentResolver();
         try {
+        	Slog.d(TAG, "Settings.Secure.getInt(cr, Settings.Secure.WIFI_ON)" + Settings.Secure.getInt(cr, Settings.Secure.WIFI_ON));
             return Settings.Secure.getInt(cr, Settings.Secure.WIFI_ON) == 1;
         } catch (Settings.SettingNotFoundException e) {
             Settings.Secure.putInt(cr, Settings.Secure.WIFI_ON, 0);
@@ -1960,8 +1963,6 @@ public class WifiService extends IWifiManager.Stub {
      * @return {@code true} if airplane mode is on.
      */
     private boolean isAirplaneModeOn() {
-    	Log.d(TAG, "isAirplaneModeOn " + Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.AIRPLANE_MODE_ON, 0));
         return isAirplaneSensitive() && Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.AIRPLANE_MODE_ON, 0) == 1;
     }
