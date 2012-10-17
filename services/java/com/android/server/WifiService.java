@@ -260,7 +260,7 @@ public class WifiService extends IWifiManager.Stub {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         // clear our flag indicating the user has overwridden airplane mode
-                        mAirplaneModeOverwridden = false;
+                        mAirplaneModeOverwridden = true;
                         // on airplane disable, restore Wifi if the saved state indicates so
                         if (!isAirplaneModeOn() && testAndClearWifiSavedState()) {
                             persistWifiEnabled(true);
@@ -1960,6 +1960,8 @@ public class WifiService extends IWifiManager.Stub {
      * @return {@code true} if airplane mode is on.
      */
     private boolean isAirplaneModeOn() {
+    	Log.d(TAG, "isAirplaneModeOn " + Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.AIRPLANE_MODE_ON, 0));
         return isAirplaneSensitive() && Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.AIRPLANE_MODE_ON, 0) == 1;
     }

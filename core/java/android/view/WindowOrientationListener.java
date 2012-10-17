@@ -305,19 +305,14 @@ public abstract class WindowOrientationListener {
         }
 
         private void calculateNewRotation(float orientation, float tiltAngle) {
-        	Log.i(TAG, "calculateNewRotation orientation" + orientation);
-        	Log.i(TAG, "calculateNewRotation tiltAngle" + tiltAngle);
             if (localLOGV) Log.i(TAG, orientation + ", " + tiltAngle + ", " + mRotation);
             final boolean allow180Rotation = mAllow180Rotation = true;
-        	Log.i(TAG, "calculateNewRotation mAllow180Rotation" + mAllow180Rotation);
-        	Log.i(TAG, "calculateNewRotation mRotation" + mRotation);
 
             int thresholdRanges[][] = allow180Rotation
                     ? THRESHOLDS_WITH_180[mRotation] : THRESHOLDS[mRotation];
                 
             int row = -1;
             for (int i = 0; i < thresholdRanges.length; i++) {
-            	Log.i(TAG, "calculateNewRotation thresholdRanges[i][0]" + thresholdRanges[i][0]);
                 if (orientation >= thresholdRanges[i][0] && orientation < thresholdRanges[i][1]) {
                     row = i;
                     break;
@@ -325,12 +320,9 @@ public abstract class WindowOrientationListener {
             }
             
             if (row == -1) return; // no matching transition
-            Log.i(TAG, "calculateNewRotation row" + row);
             int rotation = allow180Rotation
                     ? ROTATE_TO_WITH_180[mRotation][row] : ROTATE_TO[mRotation][row];
-            Log.i(TAG, "calculateNewRotation1 rotation" + rotation);
             if (tiltAngle > MAX_TRANSITION_TILT[rotation]) {
-            	Log.i(TAG, "if (tiltAngle > MAX_TRANSITION_TILT[rotation]) {" + rotation);
                 // tilted too far flat to go to this rotation
                 return;
             }
@@ -338,8 +330,6 @@ public abstract class WindowOrientationListener {
             if (localLOGV) Log.i(TAG, "orientation " + orientation + " gives new rotation = "
                     + rotation);
             mRotation = rotation;
-            Log.i(TAG, "calculateNewRotation INTERNAL_TO_SURFACE_ROTATION[mRotation]" + INTERNAL_TO_SURFACE_ROTATION[mRotation]);
-            Log.i(TAG, "calculateNewRotation mRotation1" + mRotation);
             mOrientationListener.onOrientationChanged(INTERNAL_TO_SURFACE_ROTATION[mRotation]);
         }
 
@@ -369,8 +359,6 @@ public abstract class WindowOrientationListener {
             float deviation = Math.abs(magnitude - SensorManager.STANDARD_GRAVITY);
 
             handleAccelerationDistrust(deviation);
-            Log.i(TAG, "calculateNewRotation MIN_ABS_ACCELERATION" + MIN_ABS_ACCELERATION);
-            Log.i(TAG, "calculateNewRotation magnitude" + magnitude);
             if (magnitude < MIN_ABS_ACCELERATION) {
                 return; // Ignore tilt and orientation when (0, 0, 0) or low reading
             }
@@ -390,7 +378,6 @@ public abstract class WindowOrientationListener {
             }
 
             float newOrientationAngle = computeNewOrientation(x, y);
-            Log.i(TAG, "calculateNewRotation newOrientationAngle" + newOrientationAngle);
             filterOrientation(absoluteTilt, newOrientationAngle);
             calculateNewRotation(mOrientationAngle, absoluteTilt);
         }
@@ -454,12 +441,10 @@ public abstract class WindowOrientationListener {
          */
         private float computeNewOrientation(float x, float y) {
             float orientationAngle = (float) -Math.atan2(-x, y) * RADIANS_TO_DEGREES;
-            Log.v(TAG,"computeNewOrientation orientationAngle"+orientationAngle);
             // atan2 returns [-180, 180]; normalize to [0, 360]
             if (orientationAngle < 0) {
                 orientationAngle += 360;
             }
-            Log.v(TAG,"computeNewOrientation After if orientationAngle"+orientationAngle);
             return orientationAngle;
         }
 
@@ -491,8 +476,6 @@ public abstract class WindowOrientationListener {
             } else if (mOrientationAngle < 0) {
                 mOrientationAngle += 360;
             }
-            Log.v(TAG,"filterOrientation orientationAngle"+orientationAngle);
-            Log.v(TAG,"filterOrientation deltaOrientation"+deltaOrientation);
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
