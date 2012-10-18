@@ -152,51 +152,51 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             }
         };
 
-        mAirplaneModeOn = new ToggleAction(
-                R.drawable.ic_lock_airplane_mode,
-                R.drawable.ic_lock_airplane_mode_off,
-                R.string.global_actions_toggle_airplane_mode,
-                R.string.global_actions_airplane_mode_on_status,
-                R.string.global_actions_airplane_mode_off_status) {
-
-            void onToggle(boolean on) {
-                if (Boolean.parseBoolean(
-                        SystemProperties.get(TelephonyProperties.PROPERTY_INECM_MODE))) {
-                    mIsWaitingForEcmExit = true;
-                    // Launch ECM exit dialog
-                    Intent ecmDialogIntent =
-                            new Intent(TelephonyIntents.ACTION_SHOW_NOTICE_ECM_BLOCK_OTHERS, null);
-                    ecmDialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    mContext.startActivity(ecmDialogIntent);
-                } else {
-                    changeAirplaneModeSystemSetting(on);
-                }
-            }
-
-            @Override
-            protected void changeStateFromPress(boolean buttonOn) {
-                // In ECM mode airplane state cannot be changed
-                if (!(Boolean.parseBoolean(
-                        SystemProperties.get(TelephonyProperties.PROPERTY_INECM_MODE)))) {
-                    mState = buttonOn ? State.TurningOn : State.TurningOff;
-                    mAirplaneState = mState;
-                }
-            }
-
-            public boolean showDuringKeyguard() {
-                return true;
-            }
-
-            public boolean showBeforeProvisioning() {
-                return false;
-            }
-        };
+//        mAirplaneModeOn = new ToggleAction(
+//                R.drawable.ic_lock_airplane_mode,
+//                R.drawable.ic_lock_airplane_mode_off,
+//                R.string.global_actions_toggle_airplane_mode,
+//                R.string.global_actions_airplane_mode_on_status,
+//                R.string.global_actions_airplane_mode_off_status) {
+//
+//            void onToggle(boolean on) {
+//                if (Boolean.parseBoolean(
+//                        SystemProperties.get(TelephonyProperties.PROPERTY_INECM_MODE))) {
+//                    mIsWaitingForEcmExit = true;
+//                    // Launch ECM exit dialog
+//                    Intent ecmDialogIntent =
+//                            new Intent(TelephonyIntents.ACTION_SHOW_NOTICE_ECM_BLOCK_OTHERS, null);
+//                    ecmDialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    mContext.startActivity(ecmDialogIntent);
+//                } else {
+//                    changeAirplaneModeSystemSetting(on);
+//                }
+//            }
+//
+//            @Override
+//            protected void changeStateFromPress(boolean buttonOn) {
+//                // In ECM mode airplane state cannot be changed
+//                if (!(Boolean.parseBoolean(
+//                        SystemProperties.get(TelephonyProperties.PROPERTY_INECM_MODE)))) {
+//                    mState = buttonOn ? State.TurningOn : State.TurningOff;
+//                    mAirplaneState = mState;
+//                }
+//            }
+//
+//            public boolean showDuringKeyguard() {
+//                return true;
+//            }
+//
+//            public boolean showBeforeProvisioning() {
+//                return false;
+//            }
+//        };
 
         mItems = Lists.newArrayList(
                 // silent mode
                 mSilentModeToggle,
-                // next: airplane mode
-                mAirplaneModeOn,
+//                // next: airplane mode
+//                mAirplaneModeOn,
                 // last: power off
                 new SinglePressAction(
                         com.android.internal.R.drawable.ic_lock_power_off,
@@ -241,7 +241,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 mAudioManager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL;
         mSilentModeToggle.updateState(
                 silentModeOn ? ToggleAction.State.On : ToggleAction.State.Off);
-        mAirplaneModeOn.updateState(mAirplaneState);
+        //mAirplaneModeOn.updateState(mAirplaneState);
         mAdapter.notifyDataSetChanged();
         if (mKeyguardShowing) {
             mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
@@ -545,8 +545,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
             final boolean inAirplaneMode = serviceState.getState() == ServiceState.STATE_POWER_OFF;
-            mAirplaneState = inAirplaneMode ? ToggleAction.State.On : ToggleAction.State.Off;
-            mAirplaneModeOn.updateState(mAirplaneState);
+            //mAirplaneState = inAirplaneMode ? ToggleAction.State.On : ToggleAction.State.Off;
+            //mAirplaneModeOn.updateState(mAirplaneState);
             mAdapter.notifyDataSetChanged();
         }
     };

@@ -93,6 +93,8 @@ public class PowerDialog extends Dialog implements OnClickListener,
             mPower.setOnClickListener(this);
         }
         if (mRadioPower != null) {
+        	// XXX: HACK for now hide the Airplane Mode
+        	mRadioPower.setVisibility(View.GONE);
             mRadioPower.setOnClickListener(this);
         }
         if (mSilent != null) {
