@@ -2112,7 +2112,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 if (useSensorForOrientationLp(orientation)) {
                     return mOrientationListener.getCurrentRotation(lastRotation);
                 }
-                return Surface.ROTATION_270;
+                return Surface.ROTATION_0;
             }
         }
     }

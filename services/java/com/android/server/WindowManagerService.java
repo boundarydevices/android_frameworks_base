@@ -4542,13 +4542,13 @@ public class WindowManagerService extends IWindowManager.Stub
             mLayoutNeeded = true;
             startFreezingDisplayLocked();
             Slog.i(TAG, "Setting rotation to " + rotation + ", animFlags=" + animFlags);
-            if ( rotation == 0 ) {
-            	rotation = 2;
-            	 mRotation = rotation;
-            }else if ( rotation == 2 ) {
-            	rotation = 0;
-           	 mRotation = rotation;
-           }
+//            if ( rotation == 0 ) {
+//            	rotation = 2;
+//            	 mRotation = rotation;
+//            }else if ( rotation == 2 ) {
+//            	rotation = 0;
+//           	 mRotation = rotation;
+//           }
             mInputManager.setDisplayOrientation(0, rotation);
             if (mDisplayEnabled) {
                 Surface.setOrientation(0, rotation, animFlags);
