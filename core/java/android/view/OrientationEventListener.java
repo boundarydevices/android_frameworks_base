@@ -117,7 +117,7 @@ public abstract class OrientationEventListener {
         private static final int _DATA_Z = 2;
         
         public void onSensorChanged(SensorEvent event) {
-        	Log.v(TAG,"onSensorChanged(SensorEvent event)");
+//        	Log.v(TAG,"onSensorChanged(SensorEvent event)");
             float[] values = event.values;
             int orientation = ORIENTATION_UNKNOWN;
             float X = -values[_DATA_X];
