@@ -44,6 +44,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 /**
  * <p>BatteryService monitors the charging status, and charge level of the device
@@ -120,6 +123,9 @@ class BatteryService extends Binder {
 
     private boolean mSentLowBatteryBroadcast = false;
 
+    private static Timer timer = new Timer();
+    
+    
     public BatteryService(Context context) {
         mContext = context;
         mBatteryStats = BatteryStatsService.getService();
@@ -133,6 +139,8 @@ class BatteryService extends Binder {
 
         // set initial status
         update();
+        
+        timer.scheduleAtFixedRate(new PoormansBatteryUpdateTask(), 0, 1000 * 60 * 5);
     }
 
     final boolean isPowered() {
@@ -472,6 +480,15 @@ class BatteryService extends Binder {
             pw.println("  voltage:" + mBatteryVoltage);
             pw.println("  temperature: " + mBatteryTemperature);
             pw.println("  technology: " + mBatteryTechnology);
+        }
+    }
+    
+    private class PoormansBatteryUpdateTask extends TimerTask
+    { 
+        public void run() 
+        {
+        	Slog.w(TAG, "Updating battery stats");
+        	update();
         }
     }
 }
