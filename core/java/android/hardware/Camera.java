@@ -556,7 +556,7 @@ public class Camera {
 
             case CAMERA_MSG_FOCUS:
                 if (mAutoFocusCallback != null) {
-                    mAutoFocusCallback.onAutoFocus(msg.arg1 == 0 ? false : true, mCamera);
+                    mAutoFocusCallback.onAutoFocus(msg.arg1 == 0 ? true : false, mCamera);
                 }
                 return;
 
@@ -665,7 +665,7 @@ public class Camera {
         native_cancelAutoFocus();
     }
     private native final void native_cancelAutoFocus();
-
+    
     /**
      * Callback interface used to signal the moment of actual image capture.
      *
@@ -749,7 +749,7 @@ public class Camera {
     /**
      * Zooms to the requested value smoothly. The driver will notify {@link
      * OnZoomChangeListener} of the zoom value and whether zoom is stopped at
-     * the time. For example, suppose the current zoom is 0 and startSmoothZoom
+     * the time. For example, suppose the current zoom is 0 and send
      * is called with value 3. The
      * {@link Camera.OnZoomChangeListener#onZoomChange(int, boolean, Camera)}
      * method will be called three times with zoom values 1, 2, and 3.
@@ -777,6 +777,11 @@ public class Camera {
      * @throws RuntimeException if the method fails.
      */
     public native final void stopSmoothZoom();
+    
+    /**
+     * Sends generic msg to camera driver, used for dev and debug
+     */
+    public native final void sendDebugCommand(int arg0, int arg1, int arg2);
 
     /**
      * Set the clockwise rotation of preview display in degrees. This affects

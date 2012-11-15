@@ -546,6 +546,22 @@ static void android_hardware_Camera_unlock(JNIEnv *env, jobject thiz)
     }
 }
 
+static void android_hardware_Camera_sendDebugCommand(JNIEnv *env, jobject thiz, jint value0, jint value1, jint value2)
+{
+    LOGV("sendCommand");
+    sp<Camera> camera = get_native_camera(env, thiz, NULL);
+        if (camera == 0) return;
+
+        status_t rc = camera->sendCommand(value0, value1, value2);
+        if (rc == BAD_VALUE) {
+            char msg[64];
+            sprintf(msg, "invalid value for sendCommand");
+            jniThrowException(env, "java/lang/IllegalArgumentException", msg);
+        } else if (rc != NO_ERROR) {
+            jniThrowException(env, "java/lang/RuntimeException", "sendCommand failed");
+        }
+}
+
 static void android_hardware_Camera_startSmoothZoom(JNIEnv *env, jobject thiz, jint value)
 {
     LOGV("startSmoothZoom");
@@ -651,6 +667,10 @@ static JNINativeMethod camMethods[] = {
   { "setDisplayOrientation",
     "(I)V",
     (void *)android_hardware_Camera_setDisplayOrientation },
+
+  { "sendDebugCommand",
+    "(III)V",
+    (void *)android_hardware_Camera_sendDebugCommand },
 };
 
 struct field {
