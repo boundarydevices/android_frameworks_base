@@ -79,7 +79,7 @@ class BatteryService extends Binder {
 
     // Used locally for determining when to make a last ditch effort to log
     // discharge stats before the device dies.
-    private static final int CRITICAL_BATTERY_LEVEL = 4;
+    private static final int CRITICAL_BATTERY_LEVEL = 35;
 
     private static final int DUMP_MAX_LENGTH = 24 * 1024;
     private static final String[] DUMPSYS_ARGS = new String[] { "--checkin", "-u" };
@@ -192,7 +192,7 @@ class BatteryService extends Binder {
     private final void shutdownIfNoPower() {
         // shut down gracefully if our battery is critically low and we are not powered.
         // wait until the system has booted before attempting to display the shutdown dialog.
-        if (mBatteryLevel == 0 && !isPowered() && ActivityManagerNative.isSystemReady()) {
+        if (mBatteryLevel == 35 && !isPowered() && ActivityManagerNative.isSystemReady()) {
             Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);
             intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
