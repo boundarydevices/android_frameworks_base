@@ -503,8 +503,9 @@ public class EthernetStateTracker extends NetworkStateTracker {
                 /*
                  * DHCP requests are blocking, so run them in a separate thread.
                  */
-                if(!EthernetNative.IpAvailableCommand())
+                if(!EthernetNative.IpAvailableCommand() || !mUseStaticIp)
                 {
+                	Log.i(TAG, "Why: " + EthernetNative.IpAvailableCommand() + " - " + mUseStaticIp);
                     Log.i(TAG, "request the ip address");
                     HandlerThread dhcpThread = new HandlerThread("DHCP Handler Thread");
                     dhcpThread.start();
@@ -515,7 +516,9 @@ public class EthernetStateTracker extends NetworkStateTracker {
                     configureInterface();
                 }else
                 {
+                	Log.i(TAG, "Setting static ip address...");
                     mHaveIpAddress = true;
+                    configureInterface();
                 }
                 
                 mTornDownByConnMgr = false;
@@ -1011,9 +1014,11 @@ public class EthernetStateTracker extends NetworkStateTracker {
         final ContentResolver cr = mContext.getContentResolver();
         try {
             if (Settings.System.getInt(cr, Settings.System.ETHERNET_USE_STATIC_IP) == 0) {
+            	Log.w(TAG, "checkUseStaticIp: ETHERNET_USE_STATIC_IP == 0");
                 return;
             }
         } catch (Settings.SettingNotFoundException e) {
+        	Log.w(TAG, "checkUseStaticIp: SettingNotFoundException");
             return;
         }
 
@@ -1022,24 +1027,28 @@ public class EthernetStateTracker extends NetworkStateTracker {
             if (addr != null) {
                 mDhcpInfo.ipAddress = stringToIpAddr(addr);
             } else {
+            	Log.i(TAG, "checkUseStaticIp: addr is null");
                 return;
             }
             addr = Settings.System.getString(cr, Settings.System.ETHERNET_STATIC_GATEWAY);
             if (addr != null) {
                 mDhcpInfo.gateway = stringToIpAddr(addr);
             } else {
+            	Log.i(TAG, "checkUseStaticIp: gateway is null");
                 return;
             }
             addr = Settings.System.getString(cr, Settings.System.ETHERNET_STATIC_NETMASK);
             if (addr != null) {
                 mDhcpInfo.netmask = stringToIpAddr(addr);
             } else {
+            	Log.i(TAG, "checkUseStaticIp: netmask is null");
                 return;
             }
             addr = Settings.System.getString(cr, Settings.System.ETHERNET_STATIC_DNS1);
             if (addr != null) {
                 mDhcpInfo.dns1 = stringToIpAddr(addr);
             } else {
+            	Log.i(TAG, "checkUseStaticIp: dns1 is null");
                 return;
             }
             addr = Settings.System.getString(cr, Settings.System.ETHERNET_STATIC_DNS2);
