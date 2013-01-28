@@ -104,7 +104,7 @@
         <item>"mobile_mms,2,0,2"</item>
         <item>"mobile_supl,3,0,2"</item>
         <item>"mobile_hipri,5,0,3"</item>
-        <item>"ethernet,9,0,9"</item>
+        <item>"ethernet,9,9,9"</item>
         <item>"pppoe,10,10,10"</item>
     </string-array>
 
