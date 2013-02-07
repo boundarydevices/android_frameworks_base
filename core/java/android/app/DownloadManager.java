@@ -104,6 +104,8 @@ public class DownloadManager {
      * Current status of the download, as one of the STATUS_* constants.
      */
     public final static String COLUMN_STATUS = "status";
+    
+    public final static String COLUMN_PRIVATE_DATA = "_data";
 
     /**
      * Provides more detail on the status of the download.  Its meaning depends on the value of
@@ -281,7 +283,8 @@ public class DownloadManager {
         COLUMN_STATUS,
         COLUMN_REASON,
         COLUMN_BYTES_DOWNLOADED_SO_FAR,
-        COLUMN_LAST_MODIFIED_TIMESTAMP
+        COLUMN_LAST_MODIFIED_TIMESTAMP,
+        COLUMN_PRIVATE_DATA
     };
 
     // columns to request from DownloadProvider
@@ -965,6 +968,7 @@ public class DownloadManager {
         public String getString(int columnIndex) {
             return translateString(getColumnName(columnIndex));
         }
+        
 
         private String translateString(String column) {
             if (isLongColumn(column)) {
@@ -984,6 +988,10 @@ public class DownloadManager {
             }
             if (column.equals(COLUMN_MEDIAPROVIDER_URI)) {
                 return getUnderlyingString(Downloads.Impl.COLUMN_MEDIAPROVIDER_URI);
+            }
+            
+            if (column.equals(COLUMN_PRIVATE_DATA)) {
+                return getUnderlyingString(Downloads.Impl._DATA);
             }
 
             assert column.equals(COLUMN_LOCAL_URI);
