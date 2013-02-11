@@ -1435,11 +1435,12 @@ public class WifiStateTracker extends NetworkStateTracker {
         /**
          * Interface is re-enabled in the supplicant
          * when moving out of ASSOCIATING state
-         */
+         *
         if(disableInterface) {
             if (LOCAL_LOGD) Log.d(TAG, "Disabling interface");
             NetworkUtils.disableInterface(mInterfaceName);
         }
+        */
     }
 
     /**
