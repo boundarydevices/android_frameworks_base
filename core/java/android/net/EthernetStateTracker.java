@@ -664,9 +664,12 @@ public class EthernetStateTracker extends NetworkStateTracker {
                 event = EVENT_INTERFACE_CONFIGURATION_SUCCEEDED;
                 if (LOCAL_LOGD) Log.v(TAG, "Static IP configuration succeeded");
             } else {
+                setRadio(false);
                 mHaveIpAddress = false;
-                event = EVENT_INTERFACE_CONFIGURATION_FAILED;
+                event = EVENT_INTERFACE_CONFIGURATION_SUCCEEDED;
                 if (LOCAL_LOGD) Log.v(TAG, "Static IP configuration failed");
+                setRadio(true);
+
             }
             sendEmptyMessage(event);
         }
