@@ -217,6 +217,7 @@ public final class ViewRoot extends Handler implements ViewParentEink, ViewParen
 
     final ViewConfiguration mViewConfiguration;
 
+    static IWindowManager wm;
     /**
      * see {@link #playSoundEffect(int)}
      */
@@ -229,9 +230,8 @@ public final class ViewRoot extends Handler implements ViewParentEink, ViewParen
             if (!mInitialized) {
                 try {
                     InputMethodManager imm = InputMethodManager.getInstance(mainLooper);
-                    sWindowSession = IWindowManager.Stub.asInterface(
-                            ServiceManager.getService("window"))
-                            .openSession(imm.getClient(), imm.getInputContext());
+                    wm = IWindowManager.Stub.asInterface(ServiceManager.getService("window"));
+                    sWindowSession = wm.openSession(imm.getClient(), imm.getInputContext());
                     mInitialized = true;
                 } catch (RemoteException e) {
                 }
@@ -2246,6 +2246,7 @@ public final class ViewRoot extends Handler implements ViewParentEink, ViewParen
             mTranslator.translateEventInScreenToAppWindow(event);
         }
         
+    boolean isMouse = ((event.getSource() & InputDevice.SOURCE_MOUSE) ^ InputDevice.SOURCE_MOUSE) == 0;
         boolean handled;
         if (mView != null && mAdded) {
 
@@ -2909,7 +2910,15 @@ public final class ViewRoot extends Handler implements ViewParentEink, ViewParen
 
     private void dispatchMotion(MotionEvent event, boolean sendDone) {
         int source = event.getSource();
-        if ((source & InputDevice.SOURCE_CLASS_POINTER) != 0) {
+    if (((source & InputDevice.SOURCE_MOUSE) ^ InputDevice.SOURCE_MOUSE) == 0) {
+        try{
+                wm.moveMouseSurface((int)event.getX() - (int)event.getXOffset(),
+                                    (int)event.getY() - (int)event.getYOffset());
+               }catch (RemoteException e){
+                       Log.e(TAG,"RemoteException thrown in moveMouseSurface");
+               }
+            dispatchPointer(event, sendDone);
+        }else if ((source & InputDevice.SOURCE_CLASS_POINTER) != 0) {
             dispatchPointer(event, sendDone);
         } else if ((source & InputDevice.SOURCE_CLASS_TRACKBALL) != 0) {
             dispatchTrackball(event, sendDone);

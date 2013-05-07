@@ -781,6 +781,15 @@ public final class MotionEvent extends InputEvent implements Parcelable {
         return mDataSamples[mLastDataSampleIndex + SAMPLE_Y] + mYOffset;
     }
 
+    /** @hide */
+    public final float getXOffset() {
+    return mXOffset;
+    }
+
+    /** @hide */
+    public final float getYOffset() {
+    return mYOffset;
+    }
     /**
      * {@link #getPressure(int)} for the first pointer index (may be an
      * arbitrary pointer identifier).
