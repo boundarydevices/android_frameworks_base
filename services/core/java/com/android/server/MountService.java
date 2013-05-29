@@ -105,6 +105,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.Collections;
+import java.util.ListIterator;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -2554,6 +2556,18 @@ class MountService extends IMountService.Stub
                 if (accessAll || ownerMatch) {
                     filtered.add(volume);
                 }
+            }
+            ListIterator<StorageVolume> it = filtered.listIterator();
+            int index = -1;
+            while(it.hasNext()){
+               StorageVolume tmp = filtered.get(++index);
+               if(tmp.isPrimary())
+                     break;
+            }
+            if(index != 0){
+               StorageVolume staging = filtered.remove(index);
+               filtered.add(staging);
+               Collections.rotate(filtered,1);
             }
             return filtered.toArray(new StorageVolume[filtered.size()]);
         }
