@@ -2074,16 +2074,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             switch (orientation) {
                 case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
                     //always return portrait if orientation set to portrait
-                    return mPortraitRotation;
+                    return mUpsideDownRotation;
                 case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
                     //always return landscape if orientation set to landscape
                     return mLandscapeRotation;
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT:
                     //always return portrait if orientation set to portrait
-                    return mUpsideDownRotation;
+                    return mPortraitRotation;
                 case ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
                     //always return seascape if orientation set to reverse landscape
-                    return mSeascapeRotation;
+                    return mSeascapeRotation; 
                 case ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE:
                     //return either landscape rotation based on the sensor
                     mOrientationListener.setAllow180Rotation(
