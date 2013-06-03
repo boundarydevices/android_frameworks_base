@@ -44,8 +44,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.util.Timer;
-import java.util.TimerTask;
+// import java.util.Timer;
+// import java.util.TimerTask;
 
 
 /**
@@ -123,7 +123,7 @@ class BatteryService extends Binder {
 
     private boolean mSentLowBatteryBroadcast = false;
 
-    private static Timer timer = new Timer();
+    //private static Timer timer = new Timer();
     
     
     public BatteryService(Context context) {
@@ -140,7 +140,7 @@ class BatteryService extends Binder {
         // set initial status
         update();
         
-        timer.scheduleAtFixedRate(new PoormansBatteryUpdateTask(), 0, 1000 * 60 * 5);
+        //timer.scheduleAtFixedRate(new PoormansBatteryUpdateTask(), 0, 1000 * 60 * 5);
     }
 
     final boolean isPowered() {
@@ -192,7 +192,7 @@ class BatteryService extends Binder {
     private final void shutdownIfNoPower() {
         // shut down gracefully if our battery is critically low and we are not powered.
         // wait until the system has booted before attempting to display the shutdown dialog.
-        if (mBatteryLevel == 0 && !isPowered() && ActivityManagerNative.isSystemReady()) {
+        if (mBatteryLevel == 0 && mLastBatteryLevel < 2 && !isPowered() && ActivityManagerNative.isSystemReady()) {
             Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);
             intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -235,6 +235,13 @@ class BatteryService extends Binder {
                     mBatteryVoltage);
         } catch (RemoteException e) {
             // Should never happen.
+        }
+
+        //we are sometimes getting weird values from the battery chip
+        //this is a sanity test
+        if (Math.abs(mLastBatteryLevel - mBatteryLevel) > 5 && mLastBatteryLevel > 0) {
+            Slog.w(TAG, "Detected abnormal battery level. mLastBatteryLevel: " + mLastBatteryLevel + " mBatteryLevel: " +  mBatteryLevel + ". Resetting to: " + mLastBatteryLevel);
+            mBatteryLevel = mLastBatteryLevel;
         }
         
         shutdownIfNoPower();
@@ -446,14 +453,12 @@ class BatteryService extends Binder {
     }
 
     private final int getIcon(int level) {
-        if (mBatteryStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
+        if (isPowered()) {
+            Slog.d(TAG, "getIcon()=charging");
             return com.android.internal.R.drawable.stat_sys_battery_charge;
-        } else if (mBatteryStatus == BatteryManager.BATTERY_STATUS_DISCHARGING ||
-                mBatteryStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING ||
-                mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL) {
-            return com.android.internal.R.drawable.stat_sys_battery;
         } else {
-            return com.android.internal.R.drawable.stat_sys_battery_unknown;
+            Slog.d(TAG, "getIcon()=battery");
+            return com.android.internal.R.drawable.stat_sys_battery;
         }
     }
 
@@ -480,15 +485,6 @@ class BatteryService extends Binder {
             pw.println("  voltage:" + mBatteryVoltage);
             pw.println("  temperature: " + mBatteryTemperature);
             pw.println("  technology: " + mBatteryTechnology);
-        }
-    }
-    
-    private class PoormansBatteryUpdateTask extends TimerTask
-    { 
-        public void run() 
-        {
-        	Slog.w(TAG, "Updating battery stats");
-        	update();
         }
     }
 }
