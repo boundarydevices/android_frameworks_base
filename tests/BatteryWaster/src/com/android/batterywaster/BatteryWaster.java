@@ -63,6 +63,8 @@ public class BatteryWaster extends Activity {
         mFilter.addAction(Intent.ACTION_BATTERY_LOW);
         mFilter.addAction(Intent.ACTION_BATTERY_OKAY);
         mFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        mFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        mFilter.addAction(Intent.ACTION_SHUTDOWN);
 
         PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
         mPartialWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BatteryWaster");
