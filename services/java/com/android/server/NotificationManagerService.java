@@ -1074,8 +1074,10 @@ public class NotificationManagerService extends INotificationManager.Stub
         } else if (mBatteryCharging) {
             if (mBatteryFull) {
                 mBatteryLight.setColor(BATTERY_FULL_ARGB);
+                Slog.i(TAG, "NotificationManagerService.updateLightsLocked.mBatteryCharging=full");
             } else {
                 mBatteryLight.setColor(BATTERY_MEDIUM_ARGB);
+                Slog.i(TAG, "NotificationManagerService.updateLightsLocked.mBatteryCharging=else");
             }
         } else {
             mBatteryLight.turnOff();

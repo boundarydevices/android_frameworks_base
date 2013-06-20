@@ -160,7 +160,7 @@ public class BatteryWaster extends Activity {
     }
 
     void log(String s) {
-        mLog.setText(mLog.getText() + "\n" + mDateFormat.format(new Date()) + ": " + s);
+        mLog.setText(mDateFormat.format(new Date()) + ": " + s  + "\n" + mLog.getText());
     }
 
     BroadcastReceiver mReceiver = new BroadcastReceiver() {

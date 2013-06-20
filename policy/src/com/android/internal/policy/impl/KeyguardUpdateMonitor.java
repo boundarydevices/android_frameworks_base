@@ -338,6 +338,7 @@ public class KeyguardUpdateMonitor {
 
     private boolean isBatteryUpdateInteresting(int batteryStatus, int batteryLevel) {
         // change in plug is always interesting
+        Log.d(TAG, "isBatteryUpdateInteresting?");
         final boolean isPluggedIn = isPluggedIn(batteryStatus);
         final boolean wasPluggedIn = isPluggedIn(mBatteryStatus);
         final boolean stateChangedWhilePluggedIn =
@@ -357,6 +358,7 @@ public class KeyguardUpdateMonitor {
                 return true;
             }
         }
+        Log.d(TAG, "isBatteryUpdateInteresting is NOT interesting");
         return false;
     }
 

@@ -145,7 +145,7 @@ class BatteryService extends Binder {
 
     final boolean isPowered() {
         // assume we are powered if battery state is unknown so the "stay on while plugged in" option will work.
-        return (mAcOnline || mUsbOnline || mBatteryStatus == BatteryManager.BATTERY_STATUS_UNKNOWN);
+        return (mAcOnline);
     }
 
     final boolean isPowered(int plugTypeSet) {
@@ -237,12 +237,18 @@ class BatteryService extends Binder {
             // Should never happen.
         }
 
-        //we are sometimes getting weird values from the battery chip
-        //this is a sanity test
-        if (Math.abs(mLastBatteryLevel - mBatteryLevel) > 5 && mLastBatteryLevel > 0) {
-            Slog.w(TAG, "Detected abnormal battery level. mLastBatteryLevel: " + mLastBatteryLevel + " mBatteryLevel: " +  mBatteryLevel + ". Resetting to: " + mLastBatteryLevel);
-            mBatteryLevel = mLastBatteryLevel;
+        //override the battery status if device is on AC
+        if (isPowered()) {
+            Slog.w(TAG, "Device is plugged in. Override BATTERY_STATUS and set to BATTERY_STATUS_CHARGING");
+            mBatteryStatus = BatteryManager.BATTERY_STATUS_CHARGING;
         }
+
+        // //we are sometimes getting weird values from the battery chip
+        // //this is a sanity test
+        // if (mLastBatteryLevel > 0 && mLastBatteryLevel > mBatteryLevel && (mLastBatteryLevel - mBatteryLevel) > 5) {
+        //     Slog.w(TAG, "Detected abnormal battery level. mLastBatteryLevel: " + mLastBatteryLevel + " mBatteryLevel: " +  mBatteryLevel + ". Resetting to: " + mLastBatteryLevel);
+        //     mBatteryLevel = mLastBatteryLevel;
+        // }
         
         shutdownIfNoPower();
         shutdownIfOverTemp();
