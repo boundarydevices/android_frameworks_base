@@ -61,6 +61,9 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
+import android.net.wifi.WifiManager;
+import android.net.NetworkInfo;
+import android.net.ConnectivityManager;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -95,6 +98,7 @@ public class NotificationManagerService extends INotificationManager.Stub
     private LightsService.Light mBatteryLight;
     private LightsService.Light mNotificationLight;
     private LightsService.Light mAttentionLight;
+    private LightsService.Light mWifiLight;
 
     private int mDefaultNotificationColor;
     private int mDefaultNotificationLedOn;
@@ -132,6 +136,7 @@ public class NotificationManagerService extends INotificationManager.Stub
     private boolean mBatteryLow;
     private boolean mBatteryFull;
     private NotificationRecord mLedNotification;
+    private boolean mWifiConnected;
 
     private static final int BATTERY_LOW_ARGB = 0xFFFF0000; // Charging Low - red solid on
     private static final int BATTERY_MEDIUM_ARGB = 0xFFFFFF00;    // Charging - orange solid on
@@ -392,7 +397,26 @@ public class NotificationManagerService extends INotificationManager.Stub
             } else if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
                 mInCall = (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_OFFHOOK));
                 updateNotificationPulse();
+
+            } else if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
+                Slog.d(TAG, "WifiManager.NETWORK_STATE_CHANGED_ACTION");
+                NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                if(networkInfo.isConnected()) {
+                    // Wifi is connected
+                    Slog.d(TAG, "Wifi is connected: " + String.valueOf(networkInfo));
+                    mWifiConnected = true;
+                    updateLights();
+                }
+            } else if(intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+                if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI && !networkInfo.isConnected()) {
+                    // Wifi is disconnected
+                    Slog.d(TAG, "Wifi is disconnected: " + String.valueOf(networkInfo));
+                    mWifiConnected = false;
+                    updateLights();
+                }
             }
+
         }
     };
 
@@ -441,6 +465,7 @@ public class NotificationManagerService extends INotificationManager.Stub
         mBatteryLight = lights.getLight(LightsService.LIGHT_ID_BATTERY);
         mNotificationLight = lights.getLight(LightsService.LIGHT_ID_NOTIFICATIONS);
         mAttentionLight = lights.getLight(LightsService.LIGHT_ID_ATTENTION);
+        mWifiLight = lights.getLight(LightsService.LIGHT_ID_WIFI);
 
         Resources resources = mContext.getResources();
         mDefaultNotificationColor = resources.getColor(
@@ -466,6 +491,9 @@ public class NotificationManagerService extends INotificationManager.Stub
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
         mContext.registerReceiver(mIntentReceiver, filter);
         IntentFilter pkgFilter = new IntentFilter();
         pkgFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
@@ -1063,30 +1091,21 @@ public class NotificationManagerService extends INotificationManager.Stub
     private void updateLightsLocked()
     {
         // Battery low always shows, other states only show if charging.
-        if (mBatteryLow) {
-            if (mBatteryCharging) {
-                mBatteryLight.setColor(BATTERY_LOW_ARGB);
-            } else {
-                // Flash when battery is low and not charging
-                mBatteryLight.setFlashing(BATTERY_LOW_ARGB, LightsService.LIGHT_FLASH_TIMED,
-                        BATTERY_BLINK_ON, BATTERY_BLINK_OFF);
-            }
-        } else if (mBatteryCharging) {
-            if (mBatteryFull) {
-                mBatteryLight.setColor(BATTERY_FULL_ARGB);
-                Slog.i(TAG, "NotificationManagerService.updateLightsLocked.mBatteryCharging=full");
-            } else {
-                mBatteryLight.setColor(BATTERY_MEDIUM_ARGB);
-                Slog.i(TAG, "NotificationManagerService.updateLightsLocked.mBatteryCharging=else");
-            }
-        } else {
+        if (mBatteryLow) 
+            mBatteryLight.setColor(BATTERY_LOW_ARGB);
+        else
             mBatteryLight.turnOff();
-        }
-
+            
         // clear pending pulse notification if screen is on
         if (mScreenOn || mLedNotification == null) {
             mPendingPulseNotification = false;
         }
+
+        //handle wifi light
+        if (mWifiConnected)
+            mWifiLight.setColor(BATTERY_LOW_ARGB);
+        else
+            mWifiLight.turnOff();
 
         // handle notification lights
         if (mLedNotification == null) {

@@ -1534,6 +1534,7 @@ public class WifiStateTracker extends NetworkStateTracker {
     private synchronized void requestPolledInfo(WifiInfo info, boolean polling)
     {
         int newRssi = (polling ? getRssiApprox() : getRssi());
+        //Log.d(TAG, "WifiStateTracker.requestPolledInfo newrssi:" + newRssi);
         if (newRssi != -1 && -200 < newRssi && newRssi < 256) { // screen out invalid values
             /* some implementations avoid negative values by adding 256
              * so we need to adjust for that here.
@@ -1556,6 +1557,7 @@ public class WifiStateTracker extends NetworkStateTracker {
             int newSignalLevel = WifiManager.calculateSignalLevel(newRssi, 4);
             if (newSignalLevel != mLastSignalLevel) {
                 sendRssiChangeBroadcast(newRssi);
+                Log.d(TAG, "WifiStateTracker.requestPolledInfo oldSignalLevel: " + mLastSignalLevel + " newSignalLevel:" + newSignalLevel);
             }
             mLastSignalLevel = newSignalLevel;
         } else {

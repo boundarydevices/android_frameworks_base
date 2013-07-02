@@ -114,13 +114,15 @@ public class LightsService {
         }
 
         private void setLightLocked(int color, int mode, int onMS, int offMS, int brightnessMode) {
-            if (color != mColor || mode != mMode || onMS != mOnMS || offMS != mOffMS) {
+            Slog.d(TAG, "setLightLocked");
+            //if (color != mColor || mode != mMode || onMS != mOnMS || offMS != mOffMS) {
                 mColor = color;
                 mMode = mode;
                 mOnMS = onMS;
                 mOffMS = offMS;
+                Slog.d(TAG, "setLightLocked before native");
                 setLight_native(mNativePointer, mId, color, mode, onMS, offMS, brightnessMode);
-            }
+            //}
         }
 
         private int mId;

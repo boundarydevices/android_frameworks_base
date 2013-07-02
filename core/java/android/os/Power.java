@@ -69,7 +69,7 @@ public class Power
      * Threshold for BRIGHTNESS_LOW_BATTERY (percentage)
      * Screen will stay dim if battery level is <= LOW_BATTERY_THRESHOLD
      */
-    public static final int LOW_BATTERY_THRESHOLD = 10;
+    public static final int LOW_BATTERY_THRESHOLD = 15;
 
     /**
      * Turn the screen on or off
