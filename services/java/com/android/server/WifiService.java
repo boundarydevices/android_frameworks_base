@@ -95,7 +95,7 @@ import com.android.internal.R;
  */
 public class WifiService extends IWifiManager.Stub {
     private static final String TAG = "WifiService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final Pattern scanResultPattern = Pattern.compile("\t+");
     private final WifiStateTracker mWifiStateTracker;
     /* TODO: fetch a configurable interface */
@@ -110,6 +110,7 @@ public class WifiService extends IWifiManager.Stub {
     private static final int IDLE_REQUEST = 0;
     private boolean mScreenOff;
     private boolean mDeviceIdle;
+    private long mNetworkInUseCounter = 0;
     private int mPluggedType;
 
     private enum DriverAction {DRIVER_UNLOAD, NO_DRIVER_UNLOAD};
@@ -219,6 +220,12 @@ public class WifiService extends IWifiManager.Stub {
 
     private static final String ACTION_DEVICE_IDLE =
             "com.android.server.WifiManager.action.DEVICE_IDLE";
+
+    public static final String NETWORK_IN_USE =
+            "com.android.server.WifiManager.NETWORK_IN_USE";
+
+    public static final String NETWORK_IDLE =
+            "com.android.server.WifiManager.NETWORK_IDLE";
 
     WifiService(Context context, WifiStateTracker tracker) {
         mContext = context;
@@ -1715,21 +1722,14 @@ public class WifiService extends IWifiManager.Stub {
                         // we don't have time to track down for this release.  Delay instead, but not
                         // as long as we would if connected (below)
                         // TODO - fix the race conditions and switch back to the immediate turn-off
-                        long triggerTime = System.currentTimeMillis() + (2*60*1000); // 2 min
-                        if (DBG) {
-                            Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 120,000 ms");
-                        }
-                        mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
+                        long idle = 2*60*100;
+                        setIdleAlarm(idle);
+
                         //  // do not keep Wifi awake when screen is off if Wifi is not associated
                         //  mDeviceIdle = true;
                         //  updateWifiState();
                     } else {
-                        long triggerTime = System.currentTimeMillis() + idleMillis;
-                        if (DBG) {
-                            Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for " + idleMillis
-                                    + "ms");
-                        }
-                        mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
+                        setIdleAlarm(idleMillis);
                     }
                 }
                 /* we can return now -- there's nothing to do until we get the idle intent back */
@@ -1740,6 +1740,26 @@ public class WifiService extends IWifiManager.Stub {
                 }
                 mDeviceIdle = true;
                 sendReportWorkSourceMessage();
+
+            } else if (action.equals(NETWORK_IDLE)) {
+                if (DBG) {
+                    Slog.d(TAG, "got NETWORK_IDLE");
+                }
+                mNetworkInUseCounter--;
+                if (mNetworkInUseCounter == 0) {
+                    long idle = 5*60*100;
+                    setIdleAlarm(idle);
+                }
+
+            } else if (action.equals(NETWORK_IN_USE)) {
+                if (DBG) {
+                    Slog.d(TAG, "got NETWORK_IN_USE");
+                }
+                mNetworkInUseCounter++;
+                mDeviceIdle = false;
+                mAlarmManager.cancel(mIdleIntent);
+          
+
             } else if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
                 /*
                  * Set a timer to put Wi-Fi to sleep, but only if the screen is off
@@ -1781,6 +1801,14 @@ public class WifiService extends IWifiManager.Stub {
             updateWifiState();
         }
 
+        private void setIdleAlarm(long idleMillis){
+            long triggerTime = System.currentTimeMillis() + idleMillis;
+            if (DBG) {
+                Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for " + (idleMillis/1000) + " s");
+            }
+            mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
+        }
+
         /**
          * Determines whether the Wi-Fi chipset should stay awake or be put to
          * sleep. Looks at the setting for the sleep policy and the current
@@ -1792,6 +1820,8 @@ public class WifiService extends IWifiManager.Stub {
             int wifiSleepPolicy = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.WIFI_SLEEP_POLICY, Settings.System.WIFI_SLEEP_POLICY_DEFAULT);
 
+            Slog.d(TAG, "mNetworkInUseCounter=" + mNetworkInUseCounter);
+
             if (wifiSleepPolicy == Settings.System.WIFI_SLEEP_POLICY_NEVER) {
                 // Never sleep
                 return true;
@@ -1799,6 +1829,10 @@ public class WifiService extends IWifiManager.Stub {
                     (pluggedType != 0)) {
                 // Never sleep while plugged, and we're plugged
                 return true;
+
+            } else if (mNetworkInUseCounter > 0) {
+                return true;
+
             } else {
                 // Default
                 return shouldDeviceStayAwake(stayAwakeConditions, pluggedType);
@@ -1940,6 +1974,8 @@ public class WifiService extends IWifiManager.Stub {
         intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
         intentFilter.addAction(ACTION_DEVICE_IDLE);
         intentFilter.addAction(BluetoothA2dp.ACTION_SINK_STATE_CHANGED);
+        intentFilter.addAction(NETWORK_IDLE);
+        intentFilter.addAction(NETWORK_IN_USE);
         mContext.registerReceiver(mReceiver, intentFilter);
     }
 
