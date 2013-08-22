@@ -150,6 +150,8 @@ public class WifiService extends IWifiManager.Stub {
 
     private static final String WAKELOCK_TAG = "*wifi*";
 
+    private static final String WAKELOCK_TAG_WIFI_IN_USE = "wifi_service_in_use";
+
     /**
      * The maximum amount of time to hold the wake lock after a disconnect
      * caused by stopping the driver. Establishing an EDGE connection has been
@@ -1693,6 +1695,8 @@ public class WifiService extends IWifiManager.Stub {
                 mAlarmManager.cancel(mIdleIntent);
                 mDeviceIdle = false;
                 mScreenOff = false;
+                deleteWifiWakeLock();
+
                 // Once the screen is on, we are not keeping WIFI running
                 // because of any locks so clear that tracking immediately.
                 sendReportWorkSourceMessage();
@@ -1715,6 +1719,7 @@ public class WifiService extends IWifiManager.Stub {
                  * current power conditions (i.e, not plugged in, plugged in to USB,
                  * or plugged in to AC).
                  */
+                createWifiWakeLock();
                 if (!shouldWifiStayAwake(stayAwakeConditions, mPluggedType)) {
                     WifiInfo info = mWifiStateTracker.requestConnectionInfo();
                     if (info.getSupplicantState() != SupplicantState.COMPLETED) {
@@ -1732,12 +1737,14 @@ public class WifiService extends IWifiManager.Stub {
                         setIdleAlarm(idleMillis);
                     }
                 }
+
                 /* we can return now -- there's nothing to do until we get the idle intent back */
                 return;
             } else if (action.equals(ACTION_DEVICE_IDLE)) {
                 if (DBG) {
                     Slog.d(TAG, "got ACTION_DEVICE_IDLE");
                 }
+                deleteWifiWakeLock();
                 mDeviceIdle = true;
                 sendReportWorkSourceMessage();
 
@@ -1746,7 +1753,7 @@ public class WifiService extends IWifiManager.Stub {
                     Slog.d(TAG, "got NETWORK_IDLE");
                 }
                 mNetworkInUseCounter--;
-                if (mNetworkInUseCounter == 0) {
+                if (mNetworkInUseCounter == 0 && mScreenOff) {
                     long idle = 5*60*100;
                     setIdleAlarm(idle);
                 }
@@ -1801,6 +1808,27 @@ public class WifiService extends IWifiManager.Stub {
             updateWifiState();
         }
 
+        private void createWifiWakeLock(){
+            try {
+                PrintWriter out = new PrintWriter("/sys/power/wake_lock");
+                out.write(WAKELOCK_TAG_WIFI_IN_USE);
+                out.close();
+            } catch (Exception fnf) {
+                Slog.e(TAG, "Could not create WAKELOCK_TAG_WIFI_IN_USE");
+            }
+
+        }
+
+        private void deleteWifiWakeLock(){
+            try {
+                PrintWriter out = new PrintWriter("/sys/power/wake_unlock");
+                out.write(WAKELOCK_TAG_WIFI_IN_USE);
+                out.close();
+            } catch (Exception fnf) {
+                Slog.e(TAG, "Could not delete WAKELOCK_TAG_WIFI_IN_USE");
+            }
+        }
+
         private void setIdleAlarm(long idleMillis){
             long triggerTime = System.currentTimeMillis() + idleMillis;
             if (DBG) {
@@ -1820,7 +1848,7 @@ public class WifiService extends IWifiManager.Stub {
             int wifiSleepPolicy = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.WIFI_SLEEP_POLICY, Settings.System.WIFI_SLEEP_POLICY_DEFAULT);
 
-            Slog.d(TAG, "mNetworkInUseCounter=" + mNetworkInUseCounter);
+            Slog.d(TAG, "mNetworkInUseCounter=" + mNetworkInUseCounter + ", wifiSleepPolicy=" + wifiSleepPolicy);
 
             if (wifiSleepPolicy == Settings.System.WIFI_SLEEP_POLICY_NEVER) {
                 // Never sleep
