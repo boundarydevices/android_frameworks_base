@@ -109,10 +109,10 @@ static void setLight_native(JNIEnv *env, jobject clazz, int ptr,
     Devices* devices = (Devices*)ptr;
     light_state_t state;
 
-    LOGE("setLight_native");
+    //LOGE("setLight_native");
 
     if (light < 0 || light >= LIGHT_COUNT || devices->lights[light] == NULL) {
-        LOGE("setLight_native EXIT. light:%d, isnull:%d",light, devices->lights[light] == NULL);
+        //LOGE("setLight_native EXIT. light:%d, isnull:%d",light, devices->lights[light] == NULL);
         return ;
     }
 
@@ -124,7 +124,7 @@ static void setLight_native(JNIEnv *env, jobject clazz, int ptr,
     state.brightnessMode = brightnessMode;
 
     devices->lights[light]->set_light(devices->lights[light], &state);
-    LOGE("setLight_native set_light_called");
+    //LOGE("setLight_native set_light_called");
 }
 
 static JNINativeMethod method_table[] = {
