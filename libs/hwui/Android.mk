@@ -84,6 +84,10 @@ ifeq ($(USE_OPENGL_RENDERER),true)
 
 	include external/stlport/libstlport.mk
 
+	ifeq ($(BOARD_SOC_TYPE), IMX6DQ)
+	LOCAL_CFLAGS += -DFSL_FORCE_USE_OPENGL_2X
+	endif
+
 	ifneq (false,$(ANDROID_ENABLE_RENDERSCRIPT))
 		LOCAL_CFLAGS += -DANDROID_ENABLE_RENDERSCRIPT
 		LOCAL_SHARED_LIBRARIES += libRS libRScpp
