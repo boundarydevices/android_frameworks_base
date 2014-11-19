@@ -119,6 +119,7 @@ public final class ViewRootImpl implements ViewParent,
      */
     private static final String PROPERTY_PROFILE_RENDERING = "viewroot.profile_rendering";
     private static final String PROPERTY_MEDIA_DISABLED = "config.disable_media";
+    private static final String PROPERTY_HW_RENDERING = "sys.viewroot.hw";
 
     // property used by emulator to determine display shape
     public static final String PROPERTY_EMULATOR_CIRCULAR = "ro.emulator.circular";
@@ -699,7 +700,8 @@ public final class ViewRootImpl implements ViewParent,
 
         // Try to enable hardware acceleration if requested
         final boolean hardwareAccelerated =
-                (attrs.flags & WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED) != 0;
+                ((attrs.flags & WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED) != 0)
+                && (SystemProperties.getBoolean(PROPERTY_HW_RENDERING, true));
 
         if (hardwareAccelerated) {
             if (!HardwareRenderer.isAvailable()) {
