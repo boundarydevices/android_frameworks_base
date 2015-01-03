@@ -844,6 +844,20 @@ public final class ActivityStackSupervisor implements DisplayListener {
         if (intent != null && intent.hasFileDescriptors()) {
             throw new IllegalArgumentException("File descriptors passed in Intent");
         }
+        /**
+         * Dumb workaround for launching activities from VirtualActivityContainer.
+         * Without this workaround activity launched from VAC will launch in
+         * regular ActivityContainer
+         */
+        if (iContainer == null) {
+            try {
+                IActivityContainer tmp = mService.getEnclosingActivityContainer(resultTo);
+                if (tmp instanceof VirtualActivityContainer) {
+                    iContainer = tmp;
+                }
+            } catch (RemoteException e) {
+            }
+        }
         boolean componentSpecified = intent.getComponent() != null;
 
         // Don't modify the client's object!
