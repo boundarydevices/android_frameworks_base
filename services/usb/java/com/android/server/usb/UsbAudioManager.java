@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,8 +149,28 @@ public class UsbAudioManager {
 
         // The protocol for now will be to select the last-connected (highest-numbered)
         // Alsa Card.
-        int card = cardsParser.getNumCardRecords() - 1;
+	    // compare card name to select the usb audio card
+		// int card = cardsParser.getNumCardRecords() - 1;
+        int card = 0;
         int device = 0;
+        int cardIdx;
+        int numCardRecs = cardsParser.getNumCardRecords();
+        for (cardIdx = 0; cardIdx < numCardRecs; cardIdx++) {
+            AlsaCardsParser.AlsaCardRecord cardRec = cardsParser.getCardRecordAt(cardIdx);
+            int idx = cardRec.mCardName.indexOf("USB-Audio");
+           // Slog.i(TAG, "==== name " + cardRec.mCardName + " index " + idx);
+           //found usb audio card
+           if(idx != -1)
+               break;
+        }
+
+        card = cardIdx;
+        //no name is "USB-Audio", use the last one
+        if(card >= numCardRecs) {
+            card = numCardRecs - 1;
+            Slog.w(TAG, "No card name is USB-Audio, use the last one!!!");
+            cardsParser.Log();
+        }
 
         boolean hasPlayback = devicesParser.hasPlaybackDevices(card);
         boolean hasCapture = devicesParser.hasCaptureDevices(card);
