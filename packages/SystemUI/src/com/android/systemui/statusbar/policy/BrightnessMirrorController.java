@@ -59,6 +59,7 @@ public class BrightnessMirrorController {
             @Override
             public void run() {
                 mBrightnessMirror.setVisibility(View.GONE);
+                mPanelHolder.destroyDrawingCache();
             }
         });
     }
