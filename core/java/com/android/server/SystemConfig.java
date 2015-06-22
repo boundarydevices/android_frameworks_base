@@ -25,6 +25,7 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.Process;
 import android.os.storage.StorageManager;
+import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.ArraySet;
@@ -595,6 +596,13 @@ public class SystemConfig {
             fi = new FeatureInfo();
             fi.name = name;
             fi.version = version;
+            if (fi.name.equals(PackageManager.FEATURE_WIFI_DIRECT)) {
+                String state = SystemProperties.get("persist.sys.wifidirect", "enabled");
+                if (state.equals("disabled")) {
+                    Slog.v(TAG, "Skipping " + fi.name + " feature");
+                    return;
+                }
+            }
             mAvailableFeatures.put(name, fi);
         } else {
             fi.version = Math.max(fi.version, version);
