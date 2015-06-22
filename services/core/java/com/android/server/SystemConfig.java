@@ -18,6 +18,7 @@ package com.android.server;
 
 import android.app.ActivityManager;
 import android.content.pm.FeatureInfo;
+import android.content.pm.PackageManager;
 import android.os.*;
 import android.os.Process;
 import android.util.ArrayMap;
@@ -303,6 +304,13 @@ public class SystemConfig {
                         //Log.i(TAG, "Got feature " + fname);
                         FeatureInfo fi = new FeatureInfo();
                         fi.name = fname;
+                        if (fname.equals(PackageManager.FEATURE_WIFI_DIRECT)) {
+                            String state = SystemProperties.get("persist.sys.wifidirect", "enabled");
+                            if (state.equals("disabled")) {
+                                Slog.v(TAG, "Skipping " + fname + " feature");
+                                continue;
+                            }
+                        }
                         mAvailableFeatures.put(fname, fi);
                     }
                     XmlUtils.skipCurrentTag(parser);
