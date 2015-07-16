@@ -849,13 +849,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
          * Without this workaround activity launched from VAC will launch in
          * regular ActivityContainer
          */
-        if (iContainer == null) {
-            try {
-                IActivityContainer tmp = mService.getEnclosingActivityContainer(resultTo);
-                if (tmp instanceof VirtualActivityContainer) {
-                    iContainer = tmp;
+        synchronized(mService) {
+            if (iContainer == null) {
+                ActivityStack stack = ActivityRecord.getStackLocked(resultTo);
+                if (stack != null) {
+                    if (stack.mActivityContainer instanceof VirtualActivityContainer) {
+                        iContainer = stack.mActivityContainer;
+                    }
                 }
-            } catch (RemoteException e) {
             }
         }
         boolean componentSpecified = intent.getComponent() != null;
