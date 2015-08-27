@@ -62,6 +62,7 @@ public class LocationTile extends QSTile<QSTile.BooleanState> {
         mController.setLocationEnabled(!wasEnabled);
         mEnable.setAllowAnimation(true);
         mDisable.setAllowAnimation(true);
+        refreshState();
     }
 
     @Override
