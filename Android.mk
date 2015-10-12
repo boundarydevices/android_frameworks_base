@@ -1025,7 +1025,6 @@ ext_res_dirs := \
 
 # ====  the library  =========================================
 include $(CLEAR_VARS)
-
 LOCAL_SRC_FILES := $(ext_src_files)
 
 LOCAL_NO_STANDARD_LIBRARIES := true
@@ -1037,7 +1036,6 @@ LOCAL_MODULE := ext
 LOCAL_DX_FLAGS := --core-library
 
 include $(BUILD_JAVA_LIBRARY)
-
 
 # Include subdirectory makefiles
 # ============================================================
