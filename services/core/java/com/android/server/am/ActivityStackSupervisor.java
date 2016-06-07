@@ -4356,8 +4356,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         private void checkEmbeddedAllowedInner(int userId, Intent intent, String resolvedType) {
             ActivityInfo aInfo = resolveActivity(intent, resolvedType, 0, null, userId);
             if (aInfo != null && (aInfo.flags & ActivityInfo.FLAG_ALLOW_EMBEDDED) == 0) {
-                throw new SecurityException(
-                        "Attempt to embed activity that has not set allowEmbedded=\"true\"");
+                Slog.i(TAG, "Allow Activity launch although allowEmbedded is false");
             }
         }
 
