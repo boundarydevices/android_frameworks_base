@@ -582,7 +582,7 @@ public class NavigationBarView extends FrameLayout implements PluginListener<Nav
     }
 
     private void updateCurrentView() {
-        final int rot = mDisplay.getRotation();
+        final int rot = Surface.ROTATION_0;
         for (int i=0; i<4; i++) {
             mRotatedViews[i].setVisibility(View.GONE);
         }
