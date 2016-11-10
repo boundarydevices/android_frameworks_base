@@ -35,6 +35,8 @@
 #include "JNIHelp.h"
 #include "ScopedPrimitiveArray.h"
 
+#define GPU_DEVICE "/dev/galcore"
+
 // Whitelist of open paths that the zygote is allowed to keep open.
 //
 // In addition to the paths listed here, all files ending with
@@ -55,6 +57,7 @@ static const char* kPathWhitelist[] = {
   "/dev/urandom",
   "/dev/ion",
   "/dev/dri/renderD129", // Fixes b/31172436
+  GPU_DEVICE,
 };
 
 static const char* kFdPath = "/proc/self/fd";
@@ -166,6 +169,11 @@ class FileDescriptorInfo {
   bool ReopenOrDetach() const {
     if (is_sock) {
       return DetachSocket();
+    }
+
+    // gpu device can't open twice on the same process.
+    if (!strcmp(file_path.c_str(), GPU_DEVICE)) {
+        return true;
     }
 
     // NOTE: This might happen if the file was unlinked after being opened.
