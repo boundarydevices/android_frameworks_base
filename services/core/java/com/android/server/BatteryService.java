@@ -908,27 +908,31 @@ public final class BatteryService extends SystemService {
         public void updateLightsLocked() {
             final int level = mBatteryProps.batteryLevel;
             final int status = mBatteryProps.batteryStatus;
-            if (level < mLowBatteryWarningLevel) {
-                if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
-                    // Solid red when battery is charging
-                    mBatteryLight.setColor(mBatteryLowARGB);
-                } else {
+
+            // Check if any charger is online since status stays at
+            // BATTERY_STATUS_FULL even when discharging
+            if ((status == BatteryManager.BATTERY_STATUS_DISCHARGING) ||
+                    (!mBatteryProps.chargerAcOnline &&
+                     !mBatteryProps.chargerUsbOnline &&
+                     !mBatteryProps.chargerWirelessOnline)) {
+                // No lights if not charging
+                mBatteryLight.turnOff();
+                if (level < mLowBatteryWarningLevel) {
                     // Flash red when battery is low and not charging
                     mBatteryLight.setFlashing(mBatteryLowARGB, Light.LIGHT_FLASH_TIMED,
                             mBatteryLedOn, mBatteryLedOff);
                 }
-            } else if (status == BatteryManager.BATTERY_STATUS_CHARGING
-                    || status == BatteryManager.BATTERY_STATUS_FULL) {
-                if (status == BatteryManager.BATTERY_STATUS_FULL || level >= 90) {
-                    // Solid green when full or charging and nearly full
-                    mBatteryLight.setColor(mBatteryFullARGB);
-                } else {
+            } else {
+                if (level < mLowBatteryWarningLevel) {
+                    // Solid red when battery is charging
+                    mBatteryLight.setColor(mBatteryLowARGB);
+                } else if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
                     // Solid orange when charging and halfway full
                     mBatteryLight.setColor(mBatteryMediumARGB);
+                } else if (status == BatteryManager.BATTERY_STATUS_FULL) {
+                    // Solid green when full
+                    mBatteryLight.setColor(mBatteryFullARGB);
                 }
-            } else {
-                // No lights if not charging and not low
-                mBatteryLight.turnOff();
             }
         }
     }
