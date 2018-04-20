@@ -771,7 +771,7 @@ class TvInputHardwareManager implements TvInputHal.Callback {
         // Set to an invalid value for a volume, so that current volume can be applied at the
         // first call to updateAudioConfigLocked().
         private float mCommittedVolume = -1f;
-        private float mSourceVolume = 0.0f;
+        private float mSourceVolume = 1.0f;
 
         private TvStreamConfig mActiveConfig = null;
 
@@ -890,6 +890,7 @@ class TvInputHardwareManager implements TvInputHal.Callback {
                     mAudioManager.releaseAudioPatch(mAudioPatch);
                     mAudioPatch = null;
                 }
+                mCommittedVolume = -1f;
                 return;
             }
 
@@ -927,6 +928,11 @@ class TvInputHardwareManager implements TvInputHal.Callback {
             List<AudioPortConfig> sinkConfigs = new ArrayList<>();
             AudioPatch[] audioPatchArray = new AudioPatch[] { mAudioPatch };
             boolean shouldRecreateAudioPatch = sourceUpdated || sinkUpdated;
+            boolean shouldApplyGain = false;
+
+             //mAudioPatch should not be null when current hardware is active.
+            if (mAudioPatch == null)
+                shouldRecreateAudioPatch = true;
 
             for (AudioDevicePort audioSink : mAudioSink) {
                 AudioPortConfig sinkConfig = audioSink.activeConfig();
@@ -943,7 +949,7 @@ class TvInputHardwareManager implements TvInputHal.Callback {
                         sinkChannelMask = sinkConfig.channelMask();
                     }
                     if (sinkFormat == AudioFormat.ENCODING_DEFAULT) {
-                        sinkChannelMask = sinkConfig.format();
+                        sinkFormat = sinkConfig.format();
                     }
                 }
 
@@ -993,21 +999,32 @@ class TvInputHardwareManager implements TvInputHal.Callback {
                 }
                 sourceConfig = mAudioSource.buildConfig(sourceSamplingRate, sourceChannelMask,
                         sourceFormat, sourceGainConfig);
-                shouldRecreateAudioPatch = true;
+                if (mAudioPatch != null &&
+                    ((sourceConfig.port().equals(mAudioPatch.sources()[0].port())) &&
+                    (sourceConfig.samplingRate() == mAudioPatch.sources()[0].samplingRate()) &&
+                    (sourceConfig.channelMask() == mAudioPatch.sources()[0].channelMask()) &&
+                    (sourceConfig.format() == mAudioPatch.sources()[0].format()))) {
+                    shouldApplyGain = true;
+                } else {
+                    shouldRecreateAudioPatch = true;
+                }
             }
             if (shouldRecreateAudioPatch) {
                 mCommittedVolume = volume;
                 if (mAudioPatch != null) {
                     mAudioManager.releaseAudioPatch(mAudioPatch);
+                    audioPatchArray[0] = null;
                 }
                 mAudioManager.createAudioPatch(
                         audioPatchArray,
                         new AudioPortConfig[] { sourceConfig },
                         sinkConfigs.toArray(new AudioPortConfig[sinkConfigs.size()]));
                 mAudioPatch = audioPatchArray[0];
-                if (sourceGainConfig != null) {
-                    mAudioManager.setAudioPortGain(mAudioSource, sourceGainConfig);
-                }
+            }
+            if (sourceGainConfig != null &&
+                    (shouldApplyGain || shouldRecreateAudioPatch)) {
+                mCommittedVolume = volume;
+                mAudioManager.setAudioPortGain(mAudioSource, sourceGainConfig);
             }
         }
 
