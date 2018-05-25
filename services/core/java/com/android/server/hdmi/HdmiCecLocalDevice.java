@@ -167,6 +167,8 @@ abstract class HdmiCecLocalDevice {
             return new HdmiCecLocalDeviceTv(service);
         case HdmiDeviceInfo.DEVICE_PLAYBACK:
             return new HdmiCecLocalDevicePlayback(service);
+        case HdmiDeviceInfo.DEVICE_AUDIO_SYSTEM:
+            return new HdmiCecLocalDeviceAudioSystem(service);
         default:
             return null;
         }
