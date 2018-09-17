@@ -1387,7 +1387,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (interactive) {
                 // When interactive, we're already awake.
                 // Wait for a long press or for the button to be released to decide what to do.
-                if (hasLongPressOnPowerBehavior()) {
+                if ((hasLongPressOnPowerBehavior() && !SystemProperties.getBoolean("ro.platform.has.tvuimode", false) )
+                        ||(whichPowerKeyDefinition() == POWER_KEY_SHUTDOWN)) {
                     if ((event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0) {
                         powerLongPress();
                     } else {
@@ -1435,7 +1436,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
     }
+    private static final String POWER_KEY_DEFINITION = "power_key_definition";
+    static final int POWER_KEY_SUSPEND = 0;
+    static final int POWER_KEY_SHUTDOWN = 1;
+    static final int POWER_KEY_RESTART = 2;
 
+    private int whichPowerKeyDefinition() {
+        int default_value = POWER_KEY_SUSPEND;
+        return Settings.System.getInt(mContext.getContentResolver(), POWER_KEY_DEFINITION, default_value);
+    }
     private void interceptPowerKeyUp(KeyEvent event, boolean interactive, boolean canceled) {
         final boolean handled = canceled || mPowerKeyHandled;
         mScreenshotChordPowerKeyTriggered = false;
@@ -1500,7 +1509,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         Slog.d(TAG, "powerPress: eventTime=" + eventTime + " interactive=" + interactive
                 + " count=" + count + " beganFromNonInteractive=" + mBeganFromNonInteractive +
                 " mShortPressOnPowerBehavior=" + mShortPressOnPowerBehavior);
-
+        int definedPowerKey = whichPowerKeyDefinition();
+        if (definedPowerKey == POWER_KEY_SHUTDOWN) {
+            mPowerManager.shutdown(false,"userrequested",false);
+            return;
+        }
+        if (definedPowerKey == POWER_KEY_RESTART) {
+            mPowerManager.reboot("");
+            return;
+        }
         if (count == 2) {
             powerMultiPressAction(eventTime, interactive, mDoublePressOnPowerBehavior);
         } else if (count == 3) {
