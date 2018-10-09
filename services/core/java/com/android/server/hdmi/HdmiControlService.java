@@ -488,6 +488,7 @@ public final class HdmiControlService extends SystemService {
                 Global.HDMI_CONTROL_AUTO_WAKEUP_ENABLED,
                 Global.HDMI_CONTROL_AUTO_DEVICE_OFF_ENABLED,
                 Global.HDMI_SYSTEM_AUDIO_CONTROL_ENABLED,
+                Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED,
                 Global.MHL_INPUT_SWITCHING_ENABLED,
                 Global.MHL_POWER_CHARGE_ENABLED
         };
@@ -529,6 +530,11 @@ public final class HdmiControlService extends SystemService {
                 case Global.HDMI_SYSTEM_AUDIO_CONTROL_ENABLED:
                     if (isTvDeviceEnabled()) {
                         tv().setSystemAudioControlFeatureEnabled(enabled);
+                    }
+                    break;
+                case Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED:
+                    if (isTvDeviceEnabled()) {
+                        tv().changeSystemAudioStatus(enabled);
                     }
                     break;
                 case Global.MHL_INPUT_SWITCHING_ENABLED:

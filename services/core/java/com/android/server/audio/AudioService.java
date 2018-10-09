@@ -358,10 +358,10 @@ public class AudioService extends IAudioService.Stub
     };
     private final int[] STREAM_VOLUME_ALIAS_TELEVISION = new int[] {
         AudioSystem.STREAM_MUSIC,       // STREAM_VOICE_CALL
-        AudioSystem.STREAM_MUSIC,       // STREAM_SYSTEM
-        AudioSystem.STREAM_MUSIC,       // STREAM_RING
+        AudioSystem.STREAM_RING,       // STREAM_SYSTEM
+        AudioSystem.STREAM_RING,       // STREAM_RING
         AudioSystem.STREAM_MUSIC,       // STREAM_MUSIC
-        AudioSystem.STREAM_MUSIC,       // STREAM_ALARM
+        AudioSystem.STREAM_ALARM,       // STREAM_ALARM
         AudioSystem.STREAM_MUSIC,       // STREAM_NOTIFICATION
         AudioSystem.STREAM_MUSIC,       // STREAM_BLUETOOTH_SCO
         AudioSystem.STREAM_MUSIC,       // STREAM_SYSTEM_ENFORCED
@@ -593,7 +593,7 @@ public class AudioService extends IAudioService.Stub
             = new RemoteCallbackList<IAudioRoutesObserver>();
 
     // Devices for which the volume is fixed and VolumePanel slider should be disabled
-    int mFixedVolumeDevices = AudioSystem.DEVICE_OUT_HDMI |
+    int mFixedVolumeDevices = //AudioSystem.DEVICE_OUT_HDMI |
             AudioSystem.DEVICE_OUT_DGTL_DOCK_HEADSET |
             AudioSystem.DEVICE_OUT_ANLG_DOCK_HEADSET |
             AudioSystem.DEVICE_OUT_HDMI_ARC |
@@ -4551,10 +4551,16 @@ public class AudioService extends IAudioService.Stub
             // retain the device on the A2DP output as the other must not correspond to an active
             // selection if not the speaker.
             //  - HDMI-CEC system audio mode only output: give priority to available item in order.
-            if ((device & AudioSystem.DEVICE_OUT_SPEAKER) != 0) {
-                device = AudioSystem.DEVICE_OUT_SPEAKER;
-            } else if ((device & AudioSystem.DEVICE_OUT_HDMI_ARC) != 0) {
+            if ((device & AudioSystem.DEVICE_OUT_ALL_A2DP) != 0) {
+                device &= AudioSystem.DEVICE_OUT_ALL_A2DP;
+            } else if ((device & AudioSystem.DEVICE_OUT_ALL_SCO) != 0) {
+                device &= AudioSystem.DEVICE_OUT_ALL_SCO;
+            } else if ((device & AudioSystem.DEVICE_OUT_ALL_USB) != 0) {
+                device &= AudioSystem.DEVICE_OUT_ALL_USB;
+            } else if ((device & AudioSystem.DEVICE_OUT_HDMI_ARC) != 0 && mHdmiSystemAudioSupported) {
                 device = AudioSystem.DEVICE_OUT_HDMI_ARC;
+            } else if ((device & AudioSystem.DEVICE_OUT_SPEAKER) != 0) {
+                device = AudioSystem.DEVICE_OUT_SPEAKER;
             } else if ((device & AudioSystem.DEVICE_OUT_SPDIF) != 0) {
                 device = AudioSystem.DEVICE_OUT_SPDIF;
             } else if ((device & AudioSystem.DEVICE_OUT_AUX_LINE) != 0) {
@@ -5992,6 +5998,11 @@ public class AudioService extends IAudioService.Stub
                         "onSetA2dpSinkConnectionState");
                 setCurrentAudioRouteName(btDevice.getAliasName());
             }
+            if (state == BluetoothProfile.STATE_CONNECTED) {
+                updateHdmiSystemAudioStatus(false);
+            } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
+                updateHdmiSystemAudioStatus(true);
+            }
         }
     }
 
@@ -6326,6 +6337,10 @@ public class AudioService extends IAudioService.Stub
                 // change of connection state failed, bailout
                 return;
             }
+            boolean isBluetoothOrUsbOutDevice = isBluetoothOrUsbOutDevices(device);
+            if (isBluetoothOrUsbOutDevice) {
+                updateHdmiSystemAudioStatus(state == 0);
+            }
             if (state != 0) {
                 if ((device & DEVICE_OVERRIDE_A2DP_ROUTE_ON_PLUG) != 0) {
                     setBluetoothA2dpOnInt(false, "onSetWiredDeviceConnectionState state not 0");
@@ -6341,7 +6356,7 @@ public class AudioService extends IAudioService.Stub
                 }
                 // Television devices without CEC service apply software volume on HDMI output
                 if (isPlatformTelevision() && ((device & AudioSystem.DEVICE_OUT_HDMI) != 0)) {
-                    mFixedVolumeDevices |= AudioSystem.DEVICE_OUT_HDMI;
+                    //mFixedVolumeDevices |= AudioSystem.DEVICE_OUT_HDMI;
                     checkAllFixedVolumeDevices();
                     if (mHdmiManager != null) {
                         synchronized (mHdmiManager) {
@@ -6367,6 +6382,21 @@ public class AudioService extends IAudioService.Stub
             sendDeviceConnectionIntent(device, state, address, deviceName);
             updateAudioRoutes(device, state);
         }
+    }
+
+    private boolean isBluetoothOrUsbOutDevices(int device) {
+        if ((device & AudioSystem.DEVICE_BIT_IN) != 0) {
+            return false;
+        }
+        return ((device & AudioSystem.DEVICE_OUT_ALL_A2DP) != 0)
+                || ((device & AudioSystem.DEVICE_OUT_ALL_SCO) != 0)
+                || ((device & AudioSystem.DEVICE_OUT_ALL_USB) != 0);
+    }
+
+    private void updateHdmiSystemAudioStatus(boolean enable) {
+        Settings.Global.putInt(mContentResolver,
+                Settings.Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED,
+                enable ? 1 : 0);
     }
 
     private void configureHdmiPlugIntent(Intent intent, int state) {

@@ -832,6 +832,12 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
             return;
         }
 
+        if (!hasAction(RequestShortAudioDescriptorAction.class)) {
+            addAndStartAction(
+                    new RequestShortAudioDescriptorAction(
+                            this, avr.getLogicalAddress(), enabled, mService, avr.getPortId()));
+        }
+
         addAndStartAction(
                 new SystemAudioActionFromTv(this, avr.getLogicalAddress(), enabled, callback));
     }
@@ -843,20 +849,57 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
                     + "because the System Audio Control feature is disabled.");
             return;
         }
+        if (isBluetoothOrUsbOutDevices() && on) return;
         HdmiLogger.debug("System Audio Mode change[old:%b new:%b]", mSystemAudioActivated, on);
         updateAudioManagerForSystemAudio(on);
         synchronized (mLock) {
             if (mSystemAudioActivated != on) {
+                HdmiDeviceInfo avr = getAvrDeviceInfo();
+                if (avr != null && isConnectedToArcPort(avr.getPhysicalAddress())) {
+                    RequestShortAudioDescriptorAction action =
+                            new RequestShortAudioDescriptorAction(
+                                    this, avr.getLogicalAddress(), on, mService, avr.getPortId());
+                    if (!hasAction(RequestShortAudioDescriptorAction.class)) {
+                        addAndStartAction(action);
+                    }
+                }
                 mSystemAudioActivated = on;
+                mService.writeBooleanSetting(Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED, on);
+                updateAudioDevicesStatus(on);
                 mService.announceSystemAudioModeChange(on);
             }
-            startArcAction(on);
+            if (!hasAction(SetArcTransmissionStateAction.class)) {
+                startArcAction(on);
+            }
         }
     }
 
     private void updateAudioManagerForSystemAudio(boolean on) {
+        if (isBluetoothOrUsbOutDevices() && on) return;
         int device = mService.getAudioManager().setHdmiSystemAudioSupported(on);
         HdmiLogger.debug("[A]UpdateSystemAudio mode[on=%b] output=[%X]", on, device);
+    }
+
+    private void updateAudioDevicesStatus(boolean on) {
+        mService.writeBooleanSetting(
+            "sound_output_device"/* OutputModeManager.SOUND_OUTPUT_DEVICE */, on);
+        mService.getAudioManager().setParameters("speaker_mute=" + (on ? 1 : 0));
+        mService.getAudioManager().setParameters("HDMI ARC Switch=" + (on ? 1 : 0));
+    }
+
+    @ServiceThreadOnly
+    void changeSystemAudioStatus(boolean on) {
+        assertRunOnServiceThread();
+        if (isBluetoothOrUsbOutDevices() && on) return;
+        if (!hasSystemAudioDevice()) {
+            return;
+        }
+        updateAudioManagerForSystemAudio(on);
+        synchronized (mLock) {
+            mSystemAudioActivated = on;
+            mService.writeBooleanSetting(Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED, on);
+            updateAudioDevicesStatus(on);
+        }
     }
 
     boolean isSystemAudioActivated() {
@@ -905,6 +948,17 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
         return oldStatus;
     }
 
+    boolean isBluetoothOrUsbOutDevices() {
+        int device = mService.getAudioManager().getDevicesForStream(AudioSystem.STREAM_MUSIC);
+        boolean isBluetoothOrUsbOutDevices = ((device & AudioSystem.DEVICE_OUT_ALL_A2DP) != 0)
+                || ((device & AudioSystem.DEVICE_OUT_ALL_SCO) != 0)
+                || ((device & AudioSystem.DEVICE_OUT_ALL_USB) != 0);
+        if (isBluetoothOrUsbOutDevices) {
+            mService.writeBooleanSetting(Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED, false);
+        }
+        return isBluetoothOrUsbOutDevices;
+    }
+
     /**
      * Switch hardware ARC circuit in the system.
      */
@@ -928,6 +982,12 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
         mService.getAudioManager().setWiredDeviceConnectionState(
                 AudioSystem.DEVICE_OUT_HDMI_ARC,
                 enabled ? 1 : 0, "", "");
+        if (!enabled) {
+            updateAudioManagerForSystemAudio(enabled);
+            mSystemAudioActivated = enabled;
+            mService.writeBooleanSetting(Global.HDMI_SYSTEM_AUDIO_STATUS_ENABLED, enabled);
+            updateAudioDevicesStatus(enabled);
+        }
     }
 
     /**
@@ -1464,6 +1524,10 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
     @ServiceThreadOnly
     final void removeCecDevice(int address) {
         assertRunOnServiceThread();
+
+        removeAction(RequestShortAudioDescriptorAction.class);
+        RequestShortAudioDescriptorAction.removeAudioFormat();
+
         HdmiDeviceInfo info = removeDeviceInfo(HdmiDeviceInfo.idForCecDevice(address));
 
         mCecMessageCache.flushMessagesFrom(address);
@@ -1659,6 +1723,9 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
         if (avr == null) {
             return;
         }
+
+        removeAction(RequestShortAudioDescriptorAction.class);
+        RequestShortAudioDescriptorAction.removeAudioFormat();
 
         // Seq #44.
         removeAction(RequestArcInitiationAction.class);
