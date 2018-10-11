@@ -23,6 +23,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.SystemProperties;
 import android.os.UEventObserver;
 import android.util.Slog;
 import android.media.AudioManager;
@@ -560,6 +561,9 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
                 state_cable |= BIT_LINEOUT;
             else if(status.contains("LINE-OUT=0"))
                 state_cable &= ~BIT_LINEOUT;
+
+            if (SystemProperties.getInt("ro.audio.extcon.status", -1) >= 0)
+                state_cable = SystemProperties.getInt("ro.audio.extcon", -1);
 
             Slog.v(TAG, "state_cable  " + state_cable);
             return state_cable;
