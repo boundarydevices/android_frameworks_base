@@ -829,6 +829,10 @@ public final class TvInputManagerService extends SystemService {
     private void setStateLocked(String inputId, int state, int userId) {
         UserState userState = getOrCreateUserStateLocked(userId);
         TvInputState inputState = userState.inputMap.get(inputId);
+        if (inputState == null ||inputState.info == null) {
+            Slog.d(TAG,"Can't get input info,exit!!!!!");
+            return;
+        }
         ServiceState serviceState = userState.serviceStateMap.get(inputState.info.getComponent());
         int oldState = inputState.state;
         inputState.state = state;
