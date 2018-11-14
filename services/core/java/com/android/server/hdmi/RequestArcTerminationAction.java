@@ -40,6 +40,17 @@ final class RequestArcTerminationAction extends RequestArcAction {
         mState = STATE_WATING_FOR_REQUEST_ARC_REQUEST_RESPONSE;
         addTimer(mState, HdmiConfig.TIMEOUT_MS);
 
+        HdmiCecMessage audioRequestCommand = HdmiCecMessageBuilder.buildSystemAudioModeRequest(
+                getSourceAddress(), mAvrAddress, mAvrAddress, false);
+        sendCommand(audioRequestCommand, new HdmiControlService.SendMessageCallback() {
+            @Override
+            public void onSendCompleted(int error) {
+                if (error != SendMessageResult.SUCCESS) {
+                    HdmiLogger.debug("Failed to send <System Audio Mode Request>:" + error);
+                }
+            }
+        });
+
         HdmiCecMessage command =
                 HdmiCecMessageBuilder.buildRequestArcTermination(getSourceAddress(), mAvrAddress);
         sendCommand(command, new HdmiControlService.SendMessageCallback() {

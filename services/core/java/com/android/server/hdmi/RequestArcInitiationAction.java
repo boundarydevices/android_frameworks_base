@@ -16,6 +16,10 @@
 
 package com.android.server.hdmi;
 
+import java.util.List;
+
+import android.hardware.hdmi.HdmiControlManager;
+import android.hardware.hdmi.HdmiDeviceInfo;
 import android.hardware.tv.cec.V1_0.SendMessageResult;
 
 /**
@@ -53,6 +57,50 @@ final class RequestArcInitiationAction extends RequestArcAction {
                 }
             }
         });
+
+        HdmiCecMessage audioRequestCommand = HdmiCecMessageBuilder.buildSystemAudioModeRequest(
+                getSourceAddress(), mAvrAddress, physicalAddressToParam(), true);
+        sendCommand(audioRequestCommand, new HdmiControlService.SendMessageCallback() {
+            @Override
+            public void onSendCompleted(int error) {
+                if (error != SendMessageResult.SUCCESS) {
+                    HdmiLogger.debug("Failed to send <System Audio Mode Request>:" + error);
+                }
+            }
+        });
         return true;
+    }
+
+    private int physicalAddressToParam() {
+        HdmiCecLocalDeviceTv localTv = tv();
+        int arcPortId = localTv.getAvrDeviceInfo().getPortId();
+        int portId = HdmiDeviceInfo.PORT_INVALID;
+        int devicePowerStatus = HdmiControlManager.POWER_STATUS_UNKNOWN;
+        List<HdmiDeviceInfo> hdmiDeviceInfoList = localTv.getDeviceInfoList(false);
+        for (HdmiDeviceInfo hdmiDeviceInfo : hdmiDeviceInfoList) {
+            portId = hdmiDeviceInfo.getPortId();
+            devicePowerStatus = hdmiDeviceInfo.getDevicePowerStatus();
+            if (hdmiDeviceInfo.getDeviceType() != HdmiDeviceInfo.DEVICE_AUDIO_SYSTEM
+                    && portId == arcPortId) {
+                if (devicePowerStatus == HdmiControlManager.POWER_STATUS_ON) {
+                    return hdmiDeviceInfo.getPhysicalAddress();
+                }
+            }
+        }
+        return getSystemAudioModeRequestParam();
+    }
+
+    private int getSystemAudioModeRequestParam() {
+        // <System Audio Mode Request> takes the physical address of the source device
+        // as a parameter. Get it from following candidates, in the order listed below:
+        // 1) physical address of the active source
+        // 2) active routing path
+        // 3) physical address of TV
+        if (tv().getActiveSource().isValid()) {
+            return tv().getActiveSource().physicalAddress;
+        }
+        int param = tv().getActivePath();
+        return param != Constants.INVALID_PHYSICAL_ADDRESS
+                ? param : Constants.PATH_INTERNAL;
     }
 }
