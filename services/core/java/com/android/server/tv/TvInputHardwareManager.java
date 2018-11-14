@@ -654,6 +654,9 @@ class TvInputHardwareManager implements TvInputHal.Callback {
 
         public void resetLocked(TvInputHardwareImpl hardware, ITvInputHardwareCallback callback,
                 TvInputInfo info, Integer callingUid, Integer resolvedUserId) {
+            if (mCallback != null) {
+                mCallback.asBinder().unlinkToDeath(this, 0);
+            }
             if (mHardware != null) {
                 try {
                     mCallback.onReleased();

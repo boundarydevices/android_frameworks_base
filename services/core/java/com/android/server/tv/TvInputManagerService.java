@@ -672,6 +672,7 @@ public final class TvInputManagerService extends SystemService {
                 if (sessionToken == userState.mainSessionToken) {
                     setMainLocked(sessionToken, false, callingUid, userId);
                 }
+                sessionState.session.asBinder().unlinkToDeath(sessionState, 0);
                 sessionState.session.release();
             }
         } catch (RemoteException | SessionNotFoundException e) {
@@ -707,6 +708,7 @@ public final class TvInputManagerService extends SystemService {
             clientState.sessionTokens.remove(sessionToken);
             if (clientState.isEmpty()) {
                 userState.clientStateMap.remove(sessionState.client.asBinder());
+                clientState.clientToken.unlinkToDeath(clientState, 0);
             }
         }
 
