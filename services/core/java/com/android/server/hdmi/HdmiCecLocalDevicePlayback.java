@@ -47,7 +47,7 @@ final class HdmiCecLocalDevicePlayback extends HdmiCecLocalDevice {
             SystemProperties.getBoolean(Constants.PROPERTY_WAKE_ON_HOTPLUG, true);
 
     private static final boolean SET_MENU_LANGUAGE =
-            SystemProperties.getBoolean(Constants.PROPERTY_SET_MENU_LANGUAGE, false);
+            SystemProperties.getBoolean(Constants.PROPERTY_SET_MENU_LANGUAGE, true);
 
     private boolean mIsActiveSource = false;
 
@@ -269,6 +269,9 @@ final class HdmiCecLocalDevicePlayback extends HdmiCecLocalDevice {
         assertRunOnServiceThread();
         int newPath = HdmiUtils.twoBytesToInt(message.getParams(), 2);
         maySetActiveSource(newPath);
+        if (newPath == mService.getPhysicalAddress()) {
+            maySendActiveSource(message.getSource());
+        }
         return true;  // Broadcast message.
     }
 
@@ -320,9 +323,23 @@ final class HdmiCecLocalDevicePlayback extends HdmiCecLocalDevice {
         if (!SET_MENU_LANGUAGE) {
             return false;
         }
-
         try {
             String iso3Language = new String(message.getParams(), 0, 3, "US-ASCII");
+            HdmiLogger.debug("handleSetMenuLanguage, iso3Language: " + iso3Language);
+            if (iso3Language.equals("chi") || iso3Language.equals("zho")) {
+                Locale locale = null;
+                if (iso3Language.equals("zho")) {
+                    locale = new Locale("zh", "CN"); //LanguageCode.CountryCode
+                } else {
+                    locale = new Locale("zh", "TW");
+                }
+                try {
+                    LocalePicker.updateLocale(locale);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
             Locale currentLocale = mService.getContext().getResources().getConfiguration().locale;
             if (currentLocale.getISO3Language().equals(iso3Language)) {
                 // Do not switch language if the new language is the same as the current one.

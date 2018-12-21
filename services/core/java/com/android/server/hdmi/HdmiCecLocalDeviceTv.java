@@ -273,6 +273,7 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
     @ServiceThreadOnly
     void deviceSelect(int id, IHdmiControlCallback callback) {
         assertRunOnServiceThread();
+        HdmiLogger.debug("deviceSelect deviceId: " + id);
         HdmiDeviceInfo targetDevice = mDeviceInfos.get(id);
         if (targetDevice == null) {
             invokeCallback(callback, HdmiControlManager.RESULT_TARGET_NOT_AVAILABLE);
@@ -394,6 +395,7 @@ final class HdmiCecLocalDeviceTv extends HdmiCecLocalDevice {
     void doManualPortSwitching(int portId, IHdmiControlCallback callback) {
         assertRunOnServiceThread();
         // Seq #20
+        HdmiLogger.debug("doManualPortSwitching portId: " + portId);
         if (!mService.isValidPortId(portId)) {
             invokeCallback(callback, HdmiControlManager.RESULT_INCORRECT_MODE);
             return;

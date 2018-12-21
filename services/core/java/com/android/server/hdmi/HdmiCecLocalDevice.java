@@ -901,6 +901,7 @@ abstract class HdmiCecLocalDevice {
     @ServiceThreadOnly
     protected void sendKeyEvent(int keyCode, boolean isPressed) {
         assertRunOnServiceThread();
+        HdmiLogger.debug("sendKeyEvent keyCode:  " + keyCode);
         if (!HdmiCecKeycode.isSupportedKeycode(keyCode)) {
             Slog.w(TAG, "Unsupported key: " + keyCode);
             return;
