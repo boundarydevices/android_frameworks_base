@@ -700,7 +700,7 @@ final class LocalDisplayAdapter extends DisplayAdapter {
         public final Display.Mode mMode;
 
         public DisplayModeRecord(SurfaceControl.PhysicalDisplayInfo phys) {
-            mMode = createMode(phys.width, phys.height, phys.refreshRate);
+            mMode = createMode(phys.width, phys.height, phys.refreshRate, phys.xDpi, phys.yDpi);
         }
 
         /**
@@ -713,9 +713,15 @@ final class LocalDisplayAdapter extends DisplayAdapter {
         public boolean hasMatchingMode(SurfaceControl.PhysicalDisplayInfo info) {
             int modeRefreshRate = Float.floatToIntBits(mMode.getRefreshRate());
             int displayInfoRefreshRate = Float.floatToIntBits(info.refreshRate);
+            int modeXDpi = Float.floatToIntBits(mMode.getXDpi());
+            int modeYDpi = Float.floatToIntBits(mMode.getYDpi());
+            int displayInfoXDpi = Float.floatToIntBits(info.xDpi);
+            int displayInfoYDpi = Float.floatToIntBits(info.yDpi);
             return mMode.getPhysicalWidth() == info.width
                     && mMode.getPhysicalHeight() == info.height
-                    && modeRefreshRate == displayInfoRefreshRate;
+                    && modeRefreshRate == displayInfoRefreshRate
+                    && modeXDpi == displayInfoXDpi
+                    && modeYDpi == displayInfoYDpi;
         }
 
         public String toString() {
