@@ -1445,6 +1445,12 @@ public final class HdmiControlService extends SystemService {
         }
 
         @Override
+        public void removeInputChangeListener(final IHdmiInputChangeListener listener) {
+            enforceAccessPermission();
+            HdmiControlService.this.removeInputChangeListener(listener);
+        }
+
+        @Override
         public List<HdmiDeviceInfo> getInputDevices() {
             enforceAccessPermission();
             // No need to hold the lock for obtaining TV device as the local device instance
@@ -1854,6 +1860,8 @@ public final class HdmiControlService extends SystemService {
 
     private void setInputChangeListener(IHdmiInputChangeListener listener) {
         synchronized (mLock) {
+            // Todo
+            // For now there can only be one listener to maintain.
             mInputChangeListenerRecord = new InputChangeListenerRecord(listener);
             try {
                 listener.asBinder().linkToDeath(mInputChangeListenerRecord, 0);
@@ -1861,6 +1869,22 @@ public final class HdmiControlService extends SystemService {
                 Slog.w(TAG, "Listener already died");
                 return;
             }
+        }
+    }
+
+    private void removeInputChangeListener(IHdmiInputChangeListener listener) {
+        synchronized (mLock) {
+            Slog.d(TAG, "removeInputChangeListener");
+            if (null == listener) {
+                return;
+            }
+            try {
+                listener.asBinder().unlinkToDeath(mInputChangeListenerRecord, 0);
+            } catch (Exception e) {
+                Slog.w(TAG, "Listener already died");
+                return;
+            }
+            mInputChangeListenerRecord = null;
         }
     }
 
