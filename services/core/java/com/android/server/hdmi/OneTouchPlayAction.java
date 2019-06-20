@@ -47,7 +47,7 @@ final class OneTouchPlayAction extends HdmiCecFeatureAction {
 
     // The maximum number of times we send <Give Device Power Status> before we give up.
     // We wait up to RESPONSE_TIMEOUT_MS * LOOP_COUNTER_MAX = 20 seconds.
-    private static final int LOOP_COUNTER_MAX = 10;
+    private static final int LOOP_COUNTER_MAX = 1;
 
     private final int mTargetAddress;
     private final List<IHdmiControlCallback> mCallbacks = new ArrayList<>();
@@ -57,7 +57,7 @@ final class OneTouchPlayAction extends HdmiCecFeatureAction {
     // Factory method. Ensures arguments are valid.
     static OneTouchPlayAction create(HdmiCecLocalDevicePlayback source,
             int targetAddress, IHdmiControlCallback callback) {
-        if (source == null || callback == null) {
+        if (source == null) {
             Slog.e(TAG, "Wrong arguments");
             return null;
         }
@@ -76,9 +76,9 @@ final class OneTouchPlayAction extends HdmiCecFeatureAction {
     boolean start() {
         sendCommand(HdmiCecMessageBuilder.buildTextViewOn(getSourceAddress(), mTargetAddress));
         broadcastActiveSource();
-        queryDevicePowerStatus();
-        mState = STATE_WAITING_FOR_REPORT_POWER_STATUS;
-        addTimer(mState, HdmiConfig.TIMEOUT_MS);
+        //queryDevicePowerStatus();
+        //mState = STATE_WAITING_FOR_REPORT_POWER_STATUS;
+        //addTimer(mState, HdmiConfig.TIMEOUT_MS);
         return true;
     }
 
