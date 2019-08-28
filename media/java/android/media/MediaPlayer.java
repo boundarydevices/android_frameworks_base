@@ -663,6 +663,7 @@ public class MediaPlayer extends PlayerBase
     private boolean mExoBuffering;
     private boolean mExoBufferNotifyStart;
 
+
     /**
      * Default constructor. Consider using one of the create() methods for
      * synchronously instantiating a MediaPlayer from a Uri or resource.
@@ -2271,15 +2272,7 @@ public class MediaPlayer extends PlayerBase
     public int getDuration() {
         if (mUseExoPlayer) {
             Log.i(TAG, "exo-getDuration -1-");
-            if (mExoPlayerInstance != null && isPlaying()) {
-                Log.i(TAG, "exo-getDuration");
-                if (mEventHandler != null) {
-                    Log.i(TAG, "exo-send-EXO_MEDIA_UPDATE_PROCESS");
-                    Message m = mEventHandler.obtainMessage(EXO_MEDIA_UPDATE_PROCESS, 0, 0, null);
-                    mEventHandler.sendMessage(m);
-                }
-            }
-            return mExoTotalDuration;
+            return mExoPlayerInstance.getDuration();
         }
         return _getDuration();
     }
