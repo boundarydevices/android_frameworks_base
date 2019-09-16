@@ -69,7 +69,7 @@ public class MediaPlayerExo {
         mExoLooper = looper;
         mEventHandler = handler;
         try {
-            exoplayerWrapper = Class.forName("com.google.android.exoplayer2.ExoPlayerWrapper");
+            exoplayerWrapper = Class.forName("com.google.android.exoplayer2aml.ExoPlayerWrapper");
             if (DEBUG) LOGI(TAG,"[MediaPlayerExo]exoplayerWrapper:" + exoplayerWrapper);
             Class[] paramTypes = { MediaPlayer.class, Looper.class, Handler.class };
             Object[] params = { mMediaPlayer, mExoLooper,  mEventHandler};
@@ -126,7 +126,7 @@ public class MediaPlayerExo {
         boolean ret = false;
         try {
             if (staticExoplayerWrapper == null)
-                staticExoplayerWrapper = Class.forName("com.google.android.exoplayer2.ExoPlayerWrapper");
+                staticExoplayerWrapper = Class.forName("com.google.android.exoplayer2aml.ExoPlayerWrapper");
             getIsFormatSupport = staticExoplayerWrapper.getMethod("getIsFormatSupport",Uri.class);
             ret = (boolean)getIsFormatSupport.invoke(staticExoplayerWrapper, uri);
         }
