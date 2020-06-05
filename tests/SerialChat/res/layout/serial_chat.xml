@@ -20,6 +20,14 @@
     android:orientation="vertical"
     >
 
+    <EditText android:id="@+id/message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:capitalize="sentences"
+        android:autoText="true"
+        android:singleLine="true"
+        />
+
     <ScrollView android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="0px"
@@ -30,18 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:textSize="12sp"
-            android:textColor="#ffffffff"
             />
     </ScrollView>
 
-    <EditText android:id="@+id/message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:capitalize="sentences"
-        android:autoText="true"
-        android:singleLine="true"
-        />
-
 </LinearLayout>
-
-

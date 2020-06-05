@@ -18,4 +18,5 @@ android_test {
     name: "SerialChat",
     srcs: ["**/*.java"],
     platform_apis: true,
+    certificate: "platform",
 }
