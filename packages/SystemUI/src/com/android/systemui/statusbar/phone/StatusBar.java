@@ -4259,7 +4259,7 @@ public class StatusBar extends SystemUI implements DemoMode,
         }
         // Show screen pinning request, since this comes from an app, show 'no thanks', button.
         // Except if ro.screenpinrequest.skip is true
-        if (!SystemProperties.getBoolean("ro.screenpinrequest.skip", false))
+        if (!SystemProperties.getBoolean("ro.vendor.screenpinrequest.skip", false))
             showScreenPinningRequest(taskId, true);
         else {
             Log.d(TAG, "Skip showScreenPinningRequest + confirm immersive");
